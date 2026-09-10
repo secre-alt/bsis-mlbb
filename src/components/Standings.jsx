@@ -80,7 +80,7 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                     rank === 1
                       ? "bg-ember-500/[0.06] hover:bg-ember-500/[0.08]"
                       : "bg-[var(--panel)]"
-                  }`}
+                  } ${expandedTeamId === s.id ? "shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18)] sm:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18)]" : ""}`}
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-[3px] ${
@@ -94,7 +94,15 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                     }`}
                   />
                   <div
-                    className={`text-center text-sm font-bold ${rank === 1 ? "text-ember-500" : "text-ink-500"}`}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-center text-sm font-bold ${
+                      rank === 1
+                        ? "bg-ember-500/12 text-ember-500 ring-1 ring-ember-500/20"
+                        : rank === 2
+                          ? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/10"
+                          : rank === 3
+                            ? "bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/15"
+                            : "bg-[var(--panel-soft)] text-[var(--text-muted)] ring-1 ring-[var(--line)]"
+                    }`}
                   >
                     {rank}
                   </div>
@@ -133,8 +141,17 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                   <div className="hidden justify-center sm:flex">
                     <FormDots form={s.form} />
                   </div>
-                  <div className="text-center text-[12px] font-extrabold text-ember-500 sm:text-sm">
-                    {s.pts}
+                  <div className="relative flex items-center justify-center">
+                    <div className="text-center text-[12px] font-extrabold text-ember-500 sm:text-sm">
+                      {s.pts}
+                    </div>
+                    <span
+                      className={`absolute -right-0.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-muted)] transition-transform duration-200 sm:hidden ${
+                        expandedTeamId === s.id ? "rotate-180" : ""
+                      }`}
+                    >
+                      ▾
+                    </span>
                   </div>
 
                   {expandedTeamId === s.id && (

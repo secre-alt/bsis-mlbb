@@ -60,45 +60,56 @@ function MatchCard({ match: m, getTeam, isResult }) {
           isResult ? (aWin ? "bg-ember-500" : "bg-ink-600") : "bg-ember-500"
         }`}
       />
-      <div className="mb-3 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-        <span>
+      <div className="mb-3 flex items-center justify-between gap-2 font-mono text-[9px] font-bold uppercase tracking-wider">
+        <span className="text-[var(--text-muted)]">
           Match {m.num} · Week {currentWeek} · BO3
         </span>
-        <span className="text-[var(--text-faint)]">
-          {m.date || ""} {m.time || ""}
+        <span
+          className={`rounded-full border px-2 py-0.5 ${
+            isResult
+              ? "border-ember-500/20 bg-ember-500/10 text-ember-400"
+              : "border-ember-500/20 bg-ember-500/10 text-ember-500"
+          }`}
+        >
+          {isResult ? "Final" : "Upcoming"}
         </span>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <TeamBlock team={ta} dim={isResult && !aWin} />
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-[74px] items-center justify-center gap-2">
           {isResult ? (
             <>
               <span
-                className={`font-display text-2xl font-bold ${aWin ? "text-ember-500" : "text-ink-700"}`}
+                className={`font-display text-2xl font-black leading-none ${aWin ? "text-ember-500" : "text-[var(--text-muted)]"}`}
               >
                 {m.scoreA}
               </span>
-              <span className="text-xs text-ink-700">:</span>
+              <span className="text-xs font-bold text-[var(--text-faint)]">
+                :
+              </span>
               <span
-                className={`font-display text-2xl font-bold ${!aWin ? "text-ember-500" : "text-ink-700"}`}
+                className={`font-display text-2xl font-black leading-none ${!aWin ? "text-ember-500" : "text-[var(--text-muted)]"}`}
               >
                 {m.scoreB}
               </span>
             </>
           ) : (
-            <span className="rounded-sm bg-ink-800 px-3 py-1.5 text-[10px] font-bold text-ink-500">
+            <span className="rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)]">
               VS
             </span>
           )}
         </div>
         <TeamBlock team={tb} dim={isResult && aWin} reverse />
       </div>
-      <div
-        className={`mt-3 text-center text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-[var(--text-muted)]" : "text-ember-500"}`}
-      >
-        {isResult
-          ? `Final · BO3 · ${aWin ? ta.abbr : tb.abbr} wins`
-          : `Upcoming · BO3 · ${m.time || ""}`}
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-[var(--line)] pt-2.5">
+        <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-faint)]">
+          {isResult ? "Result" : "Scheduled"}
+        </div>
+        <div
+          className={`text-right text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-[var(--text-muted)]" : "text-ember-500"}`}
+        >
+          {isResult ? `${aWin ? ta.abbr : tb.abbr} wins` : `${m.time || "TBD"}`}
+        </div>
       </div>
     </div>
   );
@@ -110,7 +121,9 @@ function TeamBlock({ team, dim, reverse }) {
       className={`flex flex-1 flex-col items-center gap-1 ${dim ? "opacity-40" : ""}`}
     >
       <TeamLogo team={team} size={32} fontSize={10} />
-      <div className="text-xs font-bold text-[var(--text)]">{team.abbr}</div>
+      <div className="text-xs font-black tracking-[0.08em] text-[var(--text)]">
+        {team.abbr}
+      </div>
       <div className="hidden text-[9px] text-[var(--text-muted)] sm:block">
         {team.name.split(" ").slice(0, 2).join(" ")}
       </div>

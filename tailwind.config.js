@@ -27,7 +27,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Rajdhani"', "sans-serif"],
+        display: ['"Orbitron"', "sans-serif"],
         body: ['"Inter"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
       },
