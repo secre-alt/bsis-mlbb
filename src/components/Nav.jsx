@@ -45,7 +45,7 @@ export default function Nav({
             <span className="text-inherit">MLBB</span>
           </div>
 
-          <div className="hidden flex-1 flex-wrap gap-1 md:flex">
+          <div className="hidden flex-1 flex-wrap items-center gap-1 md:flex">
             {PUBLIC_TABS.map((t) => (
               <TabButton
                 key={t.id}
@@ -54,16 +54,22 @@ export default function Nav({
                 onClick={handleNavigate}
               />
             ))}
-            {isAdmin &&
-              ADMIN_TABS.map((t) => (
-                <TabButton
-                  key={t.id}
-                  tab={t}
-                  active={page === t.id}
-                  onClick={handleNavigate}
-                  admin
-                />
-              ))}
+            {isAdmin && (
+              <div className="ml-2 flex items-center gap-1 rounded-full border border-ink-700/80 bg-ink-800/50 px-1.5 py-1">
+                <span className="px-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ink-500">
+                  Admin
+                </span>
+                {ADMIN_TABS.map((t) => (
+                  <TabButton
+                    key={t.id}
+                    tab={t}
+                    active={page === t.id}
+                    onClick={handleNavigate}
+                    admin
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="ml-auto hidden shrink-0 items-center gap-2.5 md:flex">
@@ -121,6 +127,30 @@ export default function Nav({
                   />
                 ))}
             </div>
+
+            {isAdmin && (
+              <div className="mt-3 border-t border-ink-800 pt-3">
+                <div className="mb-2 flex items-center gap-2 px-1">
+                  <div className="h-px flex-1 bg-ink-800" />
+                  <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-ink-500">
+                    Admin
+                  </span>
+                  <div className="h-px flex-1 bg-ink-800" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  {ADMIN_TABS.map((t) => (
+                    <TabButton
+                      key={t.id}
+                      tab={t}
+                      active={page === t.id}
+                      onClick={handleNavigate}
+                      admin
+                      fullWidth
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-3 border-t border-ink-800 pt-3">
               <div className="flex flex-col gap-2">
@@ -218,8 +248,8 @@ function TabButton({ tab, active, onClick, admin, fullWidth = false }) {
       } ${
         active
           ? admin
-            ? "bg-ember-500/10 text-ember-400 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.14)]"
-            : "bg-ink-800 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
+            ? "bg-ember-500/10 text-ember-400 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18),0_0_20px_rgba(255,90,31,0.12)]"
+            : "bg-ink-800 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_0_18px_rgba(255,90,31,0.08)]"
           : admin
             ? "text-ink-600 hover:bg-slate-200 hover:text-ember-400"
             : "text-ink-500 hover:bg-slate-200 hover:text-slate-800"

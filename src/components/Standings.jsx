@@ -8,7 +8,7 @@ import {
   FormDots,
 } from "./shared";
 
-const COLS = ["#", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
+const COLS = ["RANK", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
 
 export default function Standings({ teams, matches, getTeam, loading }) {
   const [showAllResults, setShowAllResults] = useState(false);
@@ -185,11 +185,11 @@ function ResultCard({ match: m, getTeam }) {
   if (!ta || !tb) return null;
   const aWin = m.scoreA > m.scoreB;
   return (
-    <div className="relative overflow-hidden rounded-sm border border-ink-800 bg-ink-900 p-2">
-      <span className="absolute left-0 top-0 h-full w-[3px] bg-ink-700" />
+    <div className="group relative overflow-hidden rounded-sm border border-ink-800 bg-ink-900 p-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_10px_18px_rgba(0,0,0,0.08)]">
+      <span className="absolute left-0 top-0 h-full w-[3px] bg-ink-700 transition-colors duration-200 group-hover:bg-ember-500" />
       <div className="mb-1 flex justify-between font-mono text-[8px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · R{m.round}
+          Match {m.num} · R{m.round} · BO3
         </span>
       </div>
       <div className="flex items-center justify-between gap-1.5">
@@ -198,7 +198,7 @@ function ResultCard({ match: m, getTeam }) {
         <TeamCol team={tb} score={m.scoreB} winner={!aWin} />
       </div>
       <div className="mt-1 text-center text-[8px] font-bold uppercase tracking-wider text-ink-600">
-        Final · {aWin ? ta.abbr : tb.abbr} wins
+        Final · BO3 · {aWin ? ta.abbr : tb.abbr} wins
       </div>
     </div>
   );
@@ -227,11 +227,11 @@ function UpcomingCard({ match: m, getTeam }) {
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   return (
-    <div className="relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-3.5">
-      <span className="absolute left-0 top-0 h-full w-[3px] bg-ember-500" />
+    <div className="group relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)]">
+      <span className="absolute left-0 top-0 h-full w-[3px] bg-ember-500 transition-colors duration-200 group-hover:bg-amber-400" />
       <div className="mb-2 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · R{m.round}
+          Match {m.num} · R{m.round} · BO3
         </span>
         <span className="text-ember-500">{m.time || ""}</span>
       </div>
@@ -251,7 +251,7 @@ function UpcomingCard({ match: m, getTeam }) {
       <div className="mt-2 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wider text-ember-500">
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-ember-500 shadow-[0_0_10px_rgba(255,90,31,0.7)]" />
-          <span>Upcoming</span>
+          <span>Upcoming · BO3</span>
         </span>
         <LiveCountdown date={m.date} time={m.time} />
       </div>
