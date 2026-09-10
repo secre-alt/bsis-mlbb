@@ -26,19 +26,19 @@ export default function Hero({ teams, matches, syncStatus }) {
   ];
 
   return (
-    <div className="border-b border-ink-800 bg-ink-900 bg-grid-fade">
+    <div className="border-b border-[var(--line)] bg-[var(--panel)] bg-grid-fade">
       <div className="mx-auto max-w-6xl px-5 py-7">
         <p className="font-mono text-[11px] font-semibold tracking-[0.2em] text-ember-500">
           Season 2026
         </p>
-        <h1 className="font-display text-3xl font-bold uppercase leading-none tracking-tight sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold uppercase leading-none tracking-tight text-[var(--text)] sm:text-4xl">
           BSIS MLBB Intramurals
         </h1>
-        <p className="mt-2 flex items-center gap-2 text-xs text-ink-500">
+        <p className="mt-2 flex items-center gap-2 text-xs text-[var(--text-muted)]">
           <span className="inline-flex items-center rounded-full border border-ember-500/35 bg-ember-500/10 px-2 py-1 font-bold uppercase tracking-[0.14em] text-ember-400">
             Week {currentWeek}
           </span>
-          Round robin, single phase
+          <span className="text-[var(--text-soft)]">Round robin, single phase</span>
           <span
             className={`inline-flex items-center gap-1.5 font-medium ${SYNC_COLOR[syncStatus]}`}
           >
@@ -48,17 +48,17 @@ export default function Hero({ teams, matches, syncStatus }) {
             {SYNC_LABEL[syncStatus]}
           </span>
         </p>
-        <div className="mt-5 flex flex-wrap gap-x-7 gap-y-4 border-t border-ink-800 pt-5">
+        <div className="mt-5 flex flex-wrap gap-x-7 gap-y-4 border-t border-[var(--line)] pt-5">
           {stats.map((s) => (
             <div key={s.label}>
               <div
                 className={`text-xl font-bold leading-none ${
-                  s.accent ? "text-ember-500" : "text-white"
+                  s.accent ? "text-ember-500" : "text-[var(--text)]"
                 }`}
               >
                 {s.val}
               </div>
-              <div className="mt-1.5 text-[10px] uppercase tracking-wider text-ink-500">
+              <div className="mt-1.5 text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
                 {s.label}
               </div>
             </div>

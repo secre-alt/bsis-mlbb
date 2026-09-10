@@ -51,19 +51,20 @@ function MatchCard({ match: m, getTeam, isResult }) {
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   const aWin = isResult && m.scoreA > m.scoreB;
+  const currentWeek = 1;
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-4">
+    <div className="relative overflow-hidden rounded-md border border-[var(--line)] bg-[var(--panel)] p-4 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_14px_26px_rgba(15,23,42,0.08)]">
       <span
         className={`absolute left-0 top-0 h-full w-[3px] ${
           isResult ? (aWin ? "bg-ember-500" : "bg-ink-600") : "bg-ember-500"
         }`}
       />
-      <div className="mb-3 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-ink-600">
+      <div className="mb-3 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
         <span>
-          Match {m.num} · Round {m.round} · BO3
+          Match {m.num} · Week {currentWeek} · BO3
         </span>
-        <span>
+        <span className="text-[var(--text-faint)]">
           {m.date || ""} {m.time || ""}
         </span>
       </div>
@@ -93,7 +94,7 @@ function MatchCard({ match: m, getTeam, isResult }) {
         <TeamBlock team={tb} dim={isResult && aWin} reverse />
       </div>
       <div
-        className={`mt-3 text-center text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-ink-600" : "text-ember-500"}`}
+        className={`mt-3 text-center text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-[var(--text-muted)]" : "text-ember-500"}`}
       >
         {isResult
           ? `Final · BO3 · ${aWin ? ta.abbr : tb.abbr} wins`
@@ -109,8 +110,8 @@ function TeamBlock({ team, dim, reverse }) {
       className={`flex flex-1 flex-col items-center gap-1 ${dim ? "opacity-40" : ""}`}
     >
       <TeamLogo team={team} size={32} fontSize={10} />
-      <div className="text-xs font-bold">{team.abbr}</div>
-      <div className="hidden text-[9px] text-ink-600 sm:block">
+      <div className="text-xs font-bold text-[var(--text)]">{team.abbr}</div>
+      <div className="hidden text-[9px] text-[var(--text-muted)] sm:block">
         {team.name.split(" ").slice(0, 2).join(" ")}
       </div>
     </div>

@@ -208,7 +208,7 @@ function NavAction({ isAdmin, onLoginClick, onSignOut, mobile = false }) {
         </span>
         <button
           onClick={onSignOut}
-          className={`flex items-center justify-center gap-1.5 rounded-sm border border-ink-700 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-500 transition hover:border-ink-600 hover:text-ink-300 ${
+          className={`flex items-center justify-center gap-1.5 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:border-[var(--line-soft)] hover:text-[var(--text-soft)] ${
             mobile ? "w-full" : ""
           }`}
         >
@@ -221,7 +221,7 @@ function NavAction({ isAdmin, onLoginClick, onSignOut, mobile = false }) {
   return (
     <button
       onClick={onLoginClick}
-      className={`flex items-center justify-center gap-1.5 rounded-sm border border-ink-700 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-500 transition hover:border-ink-600 hover:text-ink-300 ${
+      className={`flex items-center justify-center gap-1.5 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:border-[var(--line-soft)] hover:text-[var(--text-soft)] ${
         mobile ? "w-full" : ""
       }`}
     >
@@ -239,11 +239,11 @@ function TabButton({ tab, active, onClick, admin, fullWidth = false }) {
       } ${
         active
           ? admin
-            ? "bg-ember-500/10 text-ember-400 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18),0_0_20px_rgba(255,90,31,0.12)]"
-            : "bg-ink-800 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_0_18px_rgba(255,90,31,0.08)]"
+            ? "bg-ember-500/10 text-ember-500 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18),0_0_20px_rgba(255,90,31,0.12)]"
+            : "bg-[var(--panel-soft)] text-[var(--text)] shadow-[inset_0_0_0_1px_rgba(148,163,184,0.16),0_0_18px_rgba(255,90,31,0.08)]"
           : admin
-            ? "text-ink-600 hover:bg-slate-200 hover:text-ember-400"
-            : "text-ink-500 hover:bg-slate-200 hover:text-slate-800"
+            ? "text-[var(--text-muted)] hover:bg-[var(--panel-soft)] hover:text-ember-500"
+            : "text-[var(--text-muted)] hover:bg-[var(--panel-soft)] hover:text-[var(--text)]"
       }`}
     >
       {tab.label}

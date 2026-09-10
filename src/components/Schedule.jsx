@@ -32,10 +32,10 @@ export default function Schedule({ matches, getTeam, loading }) {
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
-            className={`rounded-sm border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+            className={`rounded-full border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-all duration-200 ${
               filter === f.id
-                ? "border-ember-500 bg-ember-500/10 text-ember-500"
-                : "border-ink-700 bg-ink-800 text-ink-500 hover:text-ink-300"
+                ? "border-ember-500 bg-ember-500/10 text-ember-500 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18)]"
+                : "border-[var(--line)] bg-[var(--panel-soft)] text-[var(--text-muted)] hover:border-[var(--line-soft)] hover:text-[var(--text)]"
             }`}
           >
             {f.label}

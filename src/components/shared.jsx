@@ -32,11 +32,11 @@ export function EmptyState({ title, sub }) {
 
 export function SkeletonBlock({ rows = 6 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-ink-800">
+    <div className="overflow-hidden rounded-md border border-[var(--line)]">
       {[...Array(rows)].map((_, i) => (
         <div
           key={i}
-          className="h-[52px] animate-shimmer border-b border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%] last:border-b-0"
+          className="h-[52px] animate-shimmer border-b border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%] last:border-b-0"
         />
       ))}
     </div>
