@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Clock3,
   LockKeyhole,
@@ -31,6 +31,7 @@ export default function Nav({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const navRef = useRef(null);
 
   const handleNavigate = (target) => {
     onNavigate(target);
@@ -38,8 +39,34 @@ export default function Nav({
     setAdminMenuOpen(false);
   };
 
+  useEffect(() => {
+    if (!isOpen && !adminMenuOpen) return;
+
+    const handlePointerDown = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setAdminMenuOpen(false);
+      }
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+      setAdminMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isOpen, adminMenuOpen]);
+
   return (
-    <nav className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
+    <nav
+      ref={navRef}
+      className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur"
+    >
       <div className="mx-auto max-w-6xl px-5 py-2.5">
         <div className="flex items-center gap-3">
           <div className="flex shrink-0 items-center gap-1.5 font-display text-[15px] font-black tracking-[0.18em] sm:text-[17px]">

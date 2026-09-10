@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { calcStandings } from "../lib/standings";
 import {
   TeamLogo,
@@ -13,6 +13,42 @@ const COLS = ["RANK", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
 export default function Standings({ teams, matches, getTeam, loading }) {
   const [showAllResults, setShowAllResults] = useState(false);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
+  const standingsRef = useRef(null);
+
+  useEffect(() => {
+    if (expandedTeamId === null) return;
+
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      const clickedRow =
+        target instanceof Element ? target.closest("[data-team-row]") : null;
+
+      if (!clickedRow) {
+        if (standingsRef.current && !standingsRef.current.contains(target)) {
+          setExpandedTeamId(null);
+          return;
+        }
+
+        setExpandedTeamId(null);
+        return;
+      }
+
+      if (clickedRow.dataset.teamId !== String(expandedTeamId)) {
+        setExpandedTeamId(null);
+      }
+    };
+
+    const handleScroll = () => {
+      setExpandedTeamId(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [expandedTeamId]);
 
   if (loading) {
     return (
@@ -32,7 +68,10 @@ export default function Standings({ teams, matches, getTeam, loading }) {
   const upcoming = matches.filter((m) => m.status === "upcoming").slice(0, 3);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 md:grid-cols-[1fr_320px]">
+    <div
+      ref={standingsRef}
+      className="mx-auto grid max-w-6xl gap-6 px-5 py-6 md:grid-cols-[1fr_320px]"
+    >
       <div>
         <div className="mb-3 flex items-center gap-2 px-1">
           <span className="inline-flex h-2.5 w-2.5 rounded-full bg-ember-500 shadow-[0_0_10px_rgba(255,120,56,0.7)]" />
@@ -70,6 +109,8 @@ export default function Standings({ teams, matches, getTeam, loading }) {
               return (
                 <div
                   key={s.id}
+                  data-team-row
+                  data-team-id={s.id}
                   role="button"
                   tabIndex={0}
                   onClick={() =>
