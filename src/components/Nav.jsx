@@ -184,8 +184,8 @@ function TabButton({ tab, active, onClick, admin, fullWidth = false }) {
             ? "bg-ember-500/10 text-ember-400 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.14)]"
             : "bg-ink-800 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
           : admin
-            ? "text-ink-600 hover:bg-ember-500/5 hover:text-ember-400"
-            : "text-ink-500 hover:bg-ink-800/70 hover:text-white"
+            ? "text-ink-600 hover:bg-slate-200 hover:text-ember-400"
+            : "text-ink-500 hover:bg-slate-200 hover:text-slate-800"
       }`}
     >
       {tab.label}
