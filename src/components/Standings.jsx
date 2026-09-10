@@ -78,7 +78,7 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                   <div className="flex min-w-0 items-center gap-2.5">
                     <TeamLogo team={team} />
                     <div className="min-w-0">
-                      <div className="truncate text-xs font-bold">
+                      <div className="standings-short-name truncate text-[12px] font-black tracking-[0.08em]">
                         {team.abbr}
                       </div>
                       <div className="truncate text-[10px] text-ink-500">

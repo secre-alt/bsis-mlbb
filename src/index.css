@@ -116,6 +116,9 @@ body {
 [data-theme="light"] .text-white {
   color: var(--text) !important;
 }
+[data-theme="light"] .standings-short-name {
+  color: var(--text) !important;
+}
 [data-theme="light"] .text-ink-300 {
   color: var(--text-soft) !important;
 }

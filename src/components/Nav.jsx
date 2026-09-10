@@ -40,9 +40,9 @@ export default function Nav({
     <nav className="sticky top-0 z-40 border-b border-ink-800 bg-ink-900/95 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur">
       <div className="mx-auto max-w-6xl px-5 py-2.5">
         <div className="flex items-center gap-3">
-          <div className="flex shrink-0 items-center gap-1.5 font-display text-sm font-bold tracking-[0.15em]">
+          <div className="flex shrink-0 items-center gap-1.5 font-display text-[15px] font-black tracking-[0.18em] sm:text-[17px]">
             <span className="text-ember-500">BSIS</span>
-            <span>MLBB</span>
+            <span className="text-inherit">MLBB</span>
           </div>
 
           <div className="hidden flex-1 flex-wrap gap-1 md:flex">
