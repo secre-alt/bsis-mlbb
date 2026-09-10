@@ -59,27 +59,27 @@ function AppShell() {
         />
 
         <div className="mx-auto max-w-6xl px-5 py-6">
-          <div className="mb-6 h-28 animate-shimmer rounded-md border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
+          <div className="mb-6 h-28 animate-shimmer rounded-md border border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%]" />
 
           <div className="grid gap-6 md:grid-cols-[1fr_320px]">
             <div className="space-y-4">
-              <div className="h-6 w-32 animate-shimmer rounded-sm border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
-              <div className="overflow-hidden rounded-md border border-ink-800">
+              <div className="h-6 w-32 animate-shimmer rounded-sm border border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%]" />
+              <div className="overflow-hidden rounded-md border border-[var(--line)]">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-[52px] animate-shimmer border-b border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%] last:border-b-0"
+                    className="h-[52px] animate-shimmer border-b border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%] last:border-b-0"
                   />
                 ))}
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="h-6 w-28 animate-shimmer rounded-sm border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
+              <div className="h-6 w-28 animate-shimmer rounded-sm border border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%]" />
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-28 animate-shimmer rounded-md border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]"
+                  className="h-28 animate-shimmer rounded-md border border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%]"
                 />
               ))}
             </div>

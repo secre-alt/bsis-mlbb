@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+const STORAGE_KEY = "bsis-mlbb-cache-v1";
+
 function normalizeTeam(t) {
   return { id: t.id, abbr: t.abbr, name: t.name, colorIdx: t.color_idx ?? 0 };
 }
@@ -17,6 +19,37 @@ function normalizeMatch(m) {
     time: m.match_time,
     status: m.status,
   };
+}
+function readCachedTournament() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      !Array.isArray(parsed.teams) ||
+      !Array.isArray(parsed.matches)
+    ) {
+      return null;
+    }
+    return { teams: parsed.teams, matches: parsed.matches };
+  } catch {
+    return null;
+  }
+}
+function writeCachedTournament(teams, matches) {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        teams,
+        matches,
+        savedAt: new Date().toISOString(),
+      }),
+    );
+  } catch {
+    // ignore storage quota issues
+  }
 }
 
 export function useTournament() {
@@ -35,18 +68,37 @@ export function useTournament() {
           supabase.from("matches").select("*").order("num"),
         ]);
       if (te || me) throw te || me;
-      setTeams(teamsData.map(normalizeTeam));
-      setMatches(matchesData.map(normalizeMatch));
+
+      const normalizedTeams = teamsData.map(normalizeTeam);
+      const normalizedMatches = matchesData.map(normalizeMatch);
+
+      setTeams(normalizedTeams);
+      setMatches(normalizedMatches);
+      writeCachedTournament(normalizedTeams, normalizedMatches);
       setSyncStatus("ok");
     } catch (e) {
       console.error(e);
-      setSyncStatus("err");
+      const cached = readCachedTournament();
+      if (cached) {
+        setTeams(cached.teams);
+        setMatches(cached.matches);
+        setSyncStatus("err");
+      } else {
+        setSyncStatus("err");
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    const cached = readCachedTournament();
+    if (cached) {
+      setTeams(cached.teams);
+      setMatches(cached.matches);
+      setLoading(false);
+    }
+
     if (!supabase) {
       setLoading(false);
       return;
