@@ -30,10 +30,12 @@ export default function Nav({
   onToggleTheme,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
 
   const handleNavigate = (target) => {
     onNavigate(target);
     setIsOpen(false);
+    setAdminMenuOpen(false);
   };
 
   return (
@@ -54,33 +56,61 @@ export default function Nav({
                 onClick={handleNavigate}
               />
             ))}
-            {isAdmin && (
-              <div className="ml-2 flex items-center gap-1 rounded-full border border-ember-500/20 bg-ember-500/5 px-1.5 py-1 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.08)]">
-                <span className="inline-flex items-center gap-1 px-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ember-400">
-                  <ShieldCheck size={10} />
-                  Admin
-                </span>
-                {ADMIN_TABS.map((t) => (
-                  <TabButton
-                    key={t.id}
-                    tab={t}
-                    active={page === t.id}
-                    onClick={handleNavigate}
-                    admin
-                  />
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="ml-auto hidden shrink-0 items-center gap-2.5 md:flex">
             <LiveClock theme={theme} />
             <ThemeToggleButton theme={theme} onToggleTheme={onToggleTheme} />
-            <NavAction
-              isAdmin={isAdmin}
-              onLoginClick={onLoginClick}
-              onSignOut={onSignOut}
-            />
+            {isAdmin ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAdminMenuOpen((current) => !current)}
+                  className="inline-flex items-center gap-2 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:border-[var(--line-soft)] hover:text-[var(--text-soft)]"
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <ShieldCheck size={11} />
+                    Admin
+                  </span>
+                </button>
+
+                {adminMenuOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-md border border-[var(--line)] bg-[var(--panel)] shadow-[0_18px_34px_rgba(15,23,42,0.18)]">
+                    {ADMIN_TABS.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => handleNavigate(t.id)}
+                        className={`block w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider transition ${
+                          page === t.id
+                            ? "bg-ember-500/10 text-ember-500"
+                            : "text-[var(--text-muted)] hover:bg-[var(--panel-soft)] hover:text-[var(--text)]"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminMenuOpen(false);
+                        onSignOut();
+                      }}
+                      className="flex w-full items-center gap-2 border-t border-[var(--line)] px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:bg-[var(--panel-soft)] hover:text-[var(--text)]"
+                    >
+                      <LogOut size={11} />
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <NavAction
+                isAdmin={isAdmin}
+                onLoginClick={onLoginClick}
+                onSignOut={onSignOut}
+              />
+            )}
           </div>
 
           <div className="ml-auto flex items-center gap-2 md:hidden">
@@ -139,20 +169,33 @@ export default function Nav({
                       fullWidth
                     />
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      onSignOut();
+                    }}
+                    className="mt-1 flex w-full items-center justify-center gap-2 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:border-[var(--line-soft)] hover:text-[var(--text-soft)]"
+                  >
+                    <LogOut size={11} />
+                    Sign out
+                  </button>
                 </div>
               </div>
             )}
 
-            <div className="mt-3 border-t border-[var(--line)] pt-3">
-              <div className="flex flex-col gap-2">
-                <NavAction
-                  isAdmin={isAdmin}
-                  onLoginClick={onLoginClick}
-                  onSignOut={onSignOut}
-                  mobile
-                />
+            {!isAdmin && (
+              <div className="mt-3 border-t border-[var(--line)] pt-3">
+                <div className="flex flex-col gap-2">
+                  <NavAction
+                    isAdmin={isAdmin}
+                    onLoginClick={onLoginClick}
+                    onSignOut={onSignOut}
+                    mobile
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

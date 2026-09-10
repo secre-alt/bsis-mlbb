@@ -1,10 +1,10 @@
-const CACHE_NAME = "bsis-mlbb-v1";
+const CACHE_VERSION = "bsis-mlbb-v2";
 const CORE_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
-      .open(CACHE_NAME)
+      .open(CACHE_VERSION)
       .then((cache) => cache.addAll(CORE_ASSETS))
       .then(() => self.skipWaiting()),
   );
@@ -17,7 +17,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => key !== CACHE_VERSION)
             .map((key) => caches.delete(key)),
         ),
       )
@@ -31,19 +31,39 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  const isHtmlRequest =
+    event.request.mode === "navigate" || url.pathname.endsWith("/index.html");
 
-      return fetch(event.request)
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
           const copy = response.clone();
           caches
-            .open(CACHE_NAME)
+            .open(CACHE_VERSION)
             .then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match("/index.html"));
+        .catch(() => caches.match("/index.html")),
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      const networkFetch = fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches
+              .open(CACHE_VERSION)
+              .then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => cached || caches.match("/index.html"));
+
+      return cached || networkFetch;
     }),
   );
 });

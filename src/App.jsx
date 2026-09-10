@@ -4,6 +4,8 @@ import { useAuth } from "./hooks/useAuth";
 import { useTournament } from "./hooks/useTournament";
 import { ToastProvider, useToast } from "./hooks/useToast";
 
+const PWA_UPDATE_MESSAGE = "A new version is ready. Refresh to update.";
+
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import LoginModal from "./components/LoginModal";
@@ -16,7 +18,11 @@ import Teams from "./components/Teams";
 import AdminPanel from "./components/AdminPanel";
 
 function AppShell() {
-  const [page, setPage] = useState("standings");
+  const [page, setPage] = useState(() => {
+    const savedPage = localStorage.getItem("bsis-page");
+    if (savedPage) return savedPage;
+    return "standings";
+  });
   const [showLogin, setShowLogin] = useState(false);
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("bsis-theme");
@@ -31,10 +37,26 @@ function AppShell() {
   const data = useTournament();
 
   useEffect(() => {
+    const onPwaUpdateReady = () => {
+      showToast(PWA_UPDATE_MESSAGE, "success");
+    };
+
+    window.addEventListener("pwa-update-ready", onPwaUpdateReady);
+
+    return () => {
+      window.removeEventListener("pwa-update-ready", onPwaUpdateReady);
+    };
+  }, [showToast]);
+
+  useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     localStorage.setItem("bsis-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("bsis-page", page);
+  }, [page]);
 
   const navigate = (target) => {
     if ((target === "admin" || target === "teams") && !isAdmin) {
