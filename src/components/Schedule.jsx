@@ -18,11 +18,9 @@ export default function Schedule({ matches, getTeam, loading }) {
     );
   }
 
-  const currentWeek = 1;
   const filtered =
     filter === "all" ? matches : matches.filter((m) => m.status === filter);
-  const filteredCurrentWeek = filtered;
-  const rounds = [currentWeek];
+  const rounds = [1];
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-6">
@@ -50,8 +48,8 @@ export default function Schedule({ matches, getTeam, loading }) {
               Week {r}
             </div>
             <div className="space-y-1.5">
-              {filteredCurrentWeek
-                .filter((m) => (Number(m.round) || 1) === r)
+              {filtered
+                .sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0))
                 .map((m) => {
                   const ta = getTeam(m.teamA);
                   const tb = getTeam(m.teamB);
