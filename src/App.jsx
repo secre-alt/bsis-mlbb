@@ -151,7 +151,7 @@ function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--text)]">
       <Nav
         page={page}
         onNavigate={navigate}
@@ -163,19 +163,23 @@ function AppShell() {
           setTheme((current) => (current === "dark" ? "light" : "dark"))
         }
       />
-      <Hero
-        teams={data.teams}
-        matches={data.matches}
-        syncStatus={data.syncStatus}
-      />
-      {(!navigator.onLine || data.syncStatus === "offline") && (
-        <div className="mx-auto max-w-6xl px-5 pb-0 pt-4">
-          <div className="rounded-md border border-blood-500/30 bg-blood-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-blood-500">
-            Offline mode · showing last synced data
+
+      <div className="flex-1">
+        <Hero
+          teams={data.teams}
+          matches={data.matches}
+          syncStatus={data.syncStatus}
+        />
+        {(!navigator.onLine || data.syncStatus === "offline") && (
+          <div className="mx-auto max-w-6xl px-5 pb-0 pt-4">
+            <div className="rounded-md border border-blood-500/30 bg-blood-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-blood-500">
+              Offline mode · showing last synced data
+            </div>
           </div>
-        </div>
-      )}
-      {content}
+        )}
+        {content}
+      </div>
+
       {showLogin && (
         <LoginModal
           onClose={() => setShowLogin(false)}

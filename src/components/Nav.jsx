@@ -145,11 +145,6 @@ export default function Nav({
 
             <div className="mt-3 border-t border-[var(--line)] pt-3">
               <div className="flex flex-col gap-2">
-                <ThemeToggleButton
-                  theme={theme}
-                  onToggleTheme={onToggleTheme}
-                  fullWidth
-                />
                 <NavAction
                   isAdmin={isAdmin}
                   onLoginClick={onLoginClick}
@@ -194,7 +189,9 @@ function LiveClock({ compact = false, theme = "dark" }) {
       {!compact && (
         <span className={isLight ? "text-slate-500" : "text-ink-600"}>PHT</span>
       )}
-      <span>{manilaTime}</span>
+      <span className={isLight ? "text-slate-700" : "text-white"}>
+        {manilaTime}
+      </span>
     </div>
   );
 }
@@ -269,7 +266,7 @@ function ThemeToggleButton({
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-pressed={!isDark}
       onClick={onToggleTheme}
-      className={`theme-toggle-shell group relative overflow-hidden rounded-full border p-1 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:scale-[1.01] ${
+      className={`theme-toggle-shell group relative overflow-hidden rounded-full border border-[var(--line)] p-1 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:scale-[1.01] hover:border-[var(--line-soft)] ${
         compact ? "h-9 w-14" : "h-9 w-[94px]"
       } ${fullWidth ? "w-full" : ""}`}
     >
