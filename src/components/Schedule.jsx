@@ -7,6 +7,26 @@ const FILTERS = [
   { id: "completed", label: "Completed" },
 ];
 
+function getStartOfWeek(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  const day = date.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(date);
+  start.setDate(date.getDate() + diffToMonday);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function getWeekNumber(dateString, tournamentStartDate) {
+  if (!dateString || !tournamentStartDate) return 1;
+
+  const start = getStartOfWeek(tournamentStartDate);
+  const current = getStartOfWeek(dateString);
+  const diffDays = Math.round((current - start) / (1000 * 60 * 60 * 24));
+
+  return Math.max(1, Math.floor(diffDays / 7) + 1);
+}
+
 export default function Schedule({ matches, getTeam, loading }) {
   const [filter, setFilter] = useState("all");
 
@@ -18,9 +38,23 @@ export default function Schedule({ matches, getTeam, loading }) {
     );
   }
 
+  const tournamentStartDate =
+    matches
+      .map((m) => m.date)
+      .filter(Boolean)
+      .sort()[0] ?? "2026-09-09";
   const filtered =
     filter === "all" ? matches : matches.filter((m) => m.status === filter);
-  const rounds = [1];
+  const weekGroups = Array.from(
+    new Set(filtered.map((m) => getWeekNumber(m.date, tournamentStartDate))),
+  )
+    .sort((a, b) => a - b)
+    .map((week) => ({
+      week,
+      matches: filtered
+        .filter((m) => getWeekNumber(m.date, tournamentStartDate) === week)
+        .sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0)),
+    }));
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-6">
@@ -41,51 +75,48 @@ export default function Schedule({ matches, getTeam, loading }) {
         ))}
       </div>
 
-      {rounds.length ? (
-        rounds.map((r) => (
-          <div key={r} className="mb-6">
+      {weekGroups.length ? (
+        weekGroups.map(({ week, matches: weekMatches }) => (
+          <div key={week} className="mb-6">
             <div className="mb-2.5 border-b border-ink-800 pb-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-ember-500">
-              Week {r}
+              Week {week}
             </div>
             <div className="space-y-1.5">
-              {filtered
-                .sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0))
-                .map((m) => {
-                  const ta = getTeam(m.teamA);
-                  const tb = getTeam(m.teamB);
-                  if (!ta || !tb) return null;
-                  const done = m.status === "completed";
-                  return (
-                    <div
-                      key={m.id}
-                      className="grid grid-cols-[24px_1fr_70px_70px] items-center gap-3 rounded-sm border border-ink-800 bg-ink-900 px-3.5 py-3 sm:grid-cols-[24px_1fr_80px_80px_70px]"
-                    >
-                      <div className="text-[10px] font-bold text-ink-600">
-                        {m.num}
-                      </div>
-                      <div className="truncate text-xs font-semibold">
-                        <b>{ta.abbr}</b>{" "}
-                        <span className="text-ink-600">vs</span>{" "}
-                        <b>{tb.abbr}</b>
-                      </div>
-                      <div className="hidden text-center text-[11px] text-ink-500 sm:block">
-                        {m.time || ""}
-                      </div>
-                      <div
-                        className={`text-center text-xs font-bold ${done ? "text-white" : "text-ink-700"}`}
-                      >
-                        {done ? `${m.scoreA}–${m.scoreB}` : "—"}
-                      </div>
-                      <div
-                        className={`text-right text-[9px] font-bold uppercase tracking-wider ${
-                          done ? "text-ink-500" : "text-ember-500"
-                        }`}
-                      >
-                        {done ? "Final" : "Upcoming"}
-                      </div>
+              {weekMatches.map((m) => {
+                const ta = getTeam(m.teamA);
+                const tb = getTeam(m.teamB);
+                if (!ta || !tb) return null;
+                const done = m.status === "completed";
+                return (
+                  <div
+                    key={m.id}
+                    className="grid grid-cols-[24px_1fr_70px_70px] items-center gap-3 rounded-sm border border-ink-800 bg-ink-900 px-3.5 py-3 sm:grid-cols-[24px_1fr_80px_80px_70px]"
+                  >
+                    <div className="text-[10px] font-bold text-ink-600">
+                      {m.num}
                     </div>
-                  );
-                })}
+                    <div className="truncate text-xs font-semibold">
+                      <b>{ta.abbr}</b> <span className="text-ink-600">vs</span>{" "}
+                      <b>{tb.abbr}</b>
+                    </div>
+                    <div className="hidden text-center text-[11px] text-ink-500 sm:block">
+                      {m.time || ""}
+                    </div>
+                    <div
+                      className={`text-center text-xs font-bold ${done ? "text-white" : "text-ink-700"}`}
+                    >
+                      {done ? `${m.scoreA}–${m.scoreB}` : "—"}
+                    </div>
+                    <div
+                      className={`text-right text-[9px] font-bold uppercase tracking-wider ${
+                        done ? "text-ink-500" : "text-ember-500"
+                      }`}
+                    >
+                      {done ? "Final" : "Upcoming"}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))

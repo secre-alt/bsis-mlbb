@@ -20,10 +20,38 @@ const SYNC_DOT = {
   offline: "bg-blood-500",
 };
 
+function getStartOfWeek(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  const day = date.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(date);
+  start.setDate(date.getDate() + diffToMonday);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function getWeekNumber(dateString, tournamentStartDate) {
+  if (!dateString || !tournamentStartDate) return 1;
+
+  const start = getStartOfWeek(tournamentStartDate);
+  const current = getStartOfWeek(dateString);
+  const diffDays = Math.round((current - start) / (1000 * 60 * 60 * 24));
+
+  return Math.max(1, Math.floor(diffDays / 7) + 1);
+}
+
 export default function Hero({ teams, matches, syncStatus }) {
   const completed = matches.filter((m) => m.status === "completed").length;
   const upcoming = matches.filter((m) => m.status === "upcoming").length;
-  const currentWeek = 1;
+  const tournamentStartDate =
+    matches
+      .map((m) => m.date)
+      .filter(Boolean)
+      .sort()[0] ?? "2026-09-09";
+  const currentWeek = getWeekNumber(
+    new Date().toISOString().split("T")[0],
+    tournamentStartDate,
+  );
 
   const stats = [
     { val: teams.length, label: "Teams" },
