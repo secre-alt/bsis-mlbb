@@ -107,7 +107,7 @@ function AppShell() {
 
   if (!isConfigured) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text)]">
         <Nav
           page={page}
           onNavigate={navigate}
@@ -151,7 +151,7 @@ function AppShell() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text)]">
       <Nav
         page={page}
         onNavigate={navigate}
