@@ -55,8 +55,9 @@ export default function Nav({
               />
             ))}
             {isAdmin && (
-              <div className="ml-2 flex items-center gap-1 rounded-full border border-ink-700/80 bg-ink-800/50 px-1.5 py-1">
-                <span className="px-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ink-500">
+              <div className="ml-2 flex items-center gap-1 rounded-full border border-ember-500/20 bg-ember-500/5 px-1.5 py-1 shadow-[inset_0_0_0_1px_rgba(255,90,31,0.08)]">
+                <span className="inline-flex items-center gap-1 px-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ember-400">
+                  <ShieldCheck size={10} />
                   Admin
                 </span>
                 {ADMIN_TABS.map((t) => (
@@ -115,24 +116,14 @@ export default function Nav({
                   fullWidth
                 />
               ))}
-              {isAdmin &&
-                ADMIN_TABS.map((t) => (
-                  <TabButton
-                    key={t.id}
-                    tab={t}
-                    active={page === t.id}
-                    onClick={handleNavigate}
-                    admin
-                    fullWidth
-                  />
-                ))}
             </div>
 
             {isAdmin && (
               <div className="mt-3 border-t border-ink-800 pt-3">
                 <div className="mb-2 flex items-center gap-2 px-1">
                   <div className="h-px flex-1 bg-ink-800" />
-                  <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-ink-500">
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ember-400">
+                    <ShieldCheck size={10} />
                     Admin
                   </span>
                   <div className="h-px flex-1 bg-ink-800" />

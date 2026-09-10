@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BSIS MLBB icon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#141417"/>
+      <stop offset="100%" stop-color="#0a0a0b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff7a3d"/>
+      <stop offset="100%" stop-color="#ff5a1f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="url(#bg)"/>
+  <rect x="40" y="40" width="432" height="432" rx="92" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="132" fill="url(#accent)" opacity="0.12"/>
+  <path d="M164 132h104c58 0 94 36 94 87 0 31-18 58-45 73 36 11 63 43 63 86 0 65-52 96-120 96H164V132zm54 46v74h43c33 0 53-18 53-38s-20-36-53-36h-43zm0 120v86h52c36 0 60-18 60-43 0-28-24-43-60-43h-52z" fill="url(#accent)"/>
+  <text x="256" y="396" text-anchor="middle" font-size="72" font-weight="900" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" letter-spacing="6">B</text>
+</svg>

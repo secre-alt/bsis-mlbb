@@ -1,0 +1,19 @@
+{
+  "name": "BSIS MLBB Intramurals 2026",
+  "short_name": "BSIS MLBB",
+  "description": "Live standings, match results, and schedule for the BSIS MLBB Intramurals 2026.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
