@@ -67,7 +67,7 @@ export default function Nav({
           </div>
 
           <div className="ml-auto hidden shrink-0 items-center gap-2.5 md:flex">
-            <LiveClock />
+            <LiveClock theme={theme} />
             <ThemeToggleButton theme={theme} onToggleTheme={onToggleTheme} />
             <NavAction
               isAdmin={isAdmin}
@@ -77,7 +77,7 @@ export default function Nav({
           </div>
 
           <div className="ml-auto flex items-center gap-2 md:hidden">
-            <LiveClock compact />
+            <LiveClock compact theme={theme} />
             <ThemeToggleButton
               theme={theme}
               onToggleTheme={onToggleTheme}
@@ -144,8 +144,9 @@ export default function Nav({
   );
 }
 
-function LiveClock({ compact = false }) {
+function LiveClock({ compact = false, theme = "dark" }) {
   const [now, setNow] = useState(() => new Date());
+  const isLight = theme === "light";
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
@@ -161,12 +162,16 @@ function LiveClock({ compact = false }) {
   }).format(now);
 
   return (
-    <div className="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-800/60 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] transition-colors duration-200 [data-theme='light']:&bg-slate-100 [data-theme='light']:&border-slate-200 [data-theme='light']:&text-slate-600">
+    <div
+      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] transition-colors duration-200 ${
+        isLight
+          ? "border-slate-200 bg-white/90 text-slate-700"
+          : "border-ink-700 bg-ink-800/60 text-ink-500"
+      }`}
+    >
       <Clock3 size={11} className="text-ember-500" />
       {!compact && (
-        <span className="text-ink-600 [data-theme='light']:&text-slate-500">
-          PHT
-        </span>
+        <span className={isLight ? "text-slate-500" : "text-ink-600"}>PHT</span>
       )}
       <span>{manilaTime}</span>
     </div>
