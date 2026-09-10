@@ -1,11 +1,17 @@
-import { getColor } from '../lib/standings';
+import { getColor } from "../lib/standings";
 
 export function TeamLogo({ team, size = 28, fontSize = 9 }) {
   const c = getColor(team);
   return (
     <div
       className="flex shrink-0 items-center justify-center rounded-full font-display font-bold"
-      style={{ width: size, height: size, background: c.bg, color: c.text, fontSize }}
+      style={{
+        width: size,
+        height: size,
+        background: c.bg,
+        color: c.text,
+        fontSize,
+      }}
     >
       {team.abbr.slice(0, 3)}
     </div>
@@ -24,7 +30,9 @@ export function SectionLabel({ children }) {
 export function EmptyState({ title, sub }) {
   return (
     <div className="rounded-md border border-dashed border-ink-800 px-5 py-10 text-center">
-      <div className="text-xs font-bold uppercase tracking-wider text-ink-500">{title}</div>
+      <div className="text-xs font-bold uppercase tracking-wider text-ink-500">
+        {title}
+      </div>
       {sub && <div className="mt-1 text-[11px] text-ink-700">{sub}</div>}
     </div>
   );
@@ -51,7 +59,7 @@ export function FormDots({ form }) {
       {last5.map((r, i) => (
         <span
           key={i}
-          className={`h-1.5 w-1.5 rounded-full ${r === 'W' ? 'bg-rift-500' : 'bg-blood-500'}`}
+          className={`h-1.5 w-1.5 rounded-full ${r === "W" ? "bg-rift-500" : "bg-blood-500"}`}
         />
       ))}
     </div>

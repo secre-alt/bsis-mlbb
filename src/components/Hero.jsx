@@ -38,7 +38,9 @@ export default function Hero({ teams, matches, syncStatus }) {
           <span className="inline-flex items-center rounded-full border border-ember-500/35 bg-ember-500/10 px-2 py-1 font-bold uppercase tracking-[0.14em] text-ember-400">
             Week {currentWeek}
           </span>
-          <span className="text-[var(--text-soft)]">Round robin, single phase</span>
+          <span className="text-[var(--text-soft)]">
+            Round robin, single phase
+          </span>
           <span
             className={`inline-flex items-center gap-1.5 font-medium ${SYNC_COLOR[syncStatus]}`}
           >
