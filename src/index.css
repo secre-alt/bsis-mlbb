@@ -339,59 +339,6 @@ body::before {
   filter: saturate(1.05);
 }
 
-.standings-rank-badge {
-  border: 1px solid transparent;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
-}
-
-.standings-rank-badge--gold {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 120, 56, 0.22),
-    rgba(255, 204, 128, 0.34)
-  );
-  color: #9a4d0c;
-  border-color: rgba(249, 115, 22, 0.6);
-  box-shadow:
-    0 0 0 1px rgba(249, 115, 22, 0.2),
-    0 0 18px rgba(255, 120, 56, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.38);
-}
-
-.standings-rank-badge--silver {
-  background: linear-gradient(
-    135deg,
-    rgba(148, 163, 184, 0.22),
-    rgba(226, 232, 240, 0.48)
-  );
-  color: #1f2937;
-  border-color: rgba(100, 116, 139, 0.6);
-  box-shadow:
-    0 0 0 1px rgba(100, 116, 139, 0.2),
-    0 0 16px rgba(148, 163, 184, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.38);
-}
-
-.standings-rank-badge--bronze {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 158, 11, 0.22),
-    rgba(253, 224, 71, 0.32)
-  );
-  color: #854d0e;
-  border-color: rgba(217, 119, 6, 0.6);
-  box-shadow:
-    0 0 0 1px rgba(217, 119, 6, 0.16),
-    0 0 16px rgba(245, 158, 11, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-}
-
-.standings-rank-badge--muted {
-  background: var(--panel-soft);
-  color: var(--text-muted);
-  border-color: var(--line);
-}
-
 [data-theme="light"] .bg-grid-fade {
   background-image: radial-gradient(
     circle at 50% 0%,

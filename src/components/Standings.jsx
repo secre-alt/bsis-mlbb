@@ -46,7 +46,7 @@ export default function Standings({ teams, matches, getTeam, loading }) {
               <div className="text-center text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
                 {COLS[0]}
               </div>
-              <div className="pl-4 text-left text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+              <div className="pl-3 text-left text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
                 {COLS[1]}
               </div>
               {COLS.slice(2).map((c) => (
@@ -107,15 +107,15 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                     }`}
                   />
                   <div
-                    className={`standings-rank-badge standings-rank-badge--${
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-center text-sm font-black ${
                       rank === 1
-                        ? "gold"
+                        ? "bg-ember-500/15 text-ember-500 ring-1 ring-ember-500/35 shadow-[0_0_0_1px_rgba(255,120,56,0.18)]"
                         : rank === 2
-                          ? "silver"
+                          ? "bg-slate-300 text-slate-700 ring-1 ring-slate-400/80 shadow-[0_0_0_1px_rgba(148,163,184,0.2)]"
                           : rank === 3
-                            ? "bronze"
-                            : "muted"
-                    } flex h-7 w-7 items-center justify-center rounded-full text-center text-sm font-black`}
+                            ? "bg-amber-200 text-amber-800 ring-1 ring-amber-500/60 shadow-[0_0_0_1px_rgba(245,158,11,0.18)]"
+                            : "bg-[var(--panel-soft)] text-[var(--text-muted)] ring-1 ring-[var(--line)]"
+                    }`}
                   >
                     {rank}
                   </div>
