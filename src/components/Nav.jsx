@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  Clock3,
   LockKeyhole,
   LogOut,
   Menu,
@@ -66,6 +67,7 @@ export default function Nav({
           </div>
 
           <div className="ml-auto hidden shrink-0 items-center gap-2.5 md:flex">
+            <LiveClock />
             <ThemeToggleButton theme={theme} onToggleTheme={onToggleTheme} />
             <NavAction
               isAdmin={isAdmin}
@@ -75,6 +77,7 @@ export default function Nav({
           </div>
 
           <div className="ml-auto flex items-center gap-2 md:hidden">
+            <LiveClock compact />
             <ThemeToggleButton
               theme={theme}
               onToggleTheme={onToggleTheme}
@@ -138,6 +141,35 @@ export default function Nav({
         )}
       </div>
     </nav>
+  );
+}
+
+function LiveClock({ compact = false }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const manilaTime = new Intl.DateTimeFormat("en-PH", {
+    timeZone: "Asia/Manila",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(now);
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-800/60 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] transition-colors duration-200 [data-theme='light']:&bg-slate-100 [data-theme='light']:&border-slate-200 [data-theme='light']:&text-slate-600">
+      <Clock3 size={11} className="text-ember-500" />
+      {!compact && (
+        <span className="text-ink-600 [data-theme='light']:&text-slate-500">
+          PHT
+        </span>
+      )}
+      <span>{manilaTime}</span>
+    </div>
   );
 }
 

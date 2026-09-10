@@ -11,6 +11,8 @@ import {
 const COLS = ["#", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
 
 export default function Standings({ teams, matches, getTeam, loading }) {
+  const [showAllResults, setShowAllResults] = useState(false);
+
   if (loading) {
     return (
       <div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 md:grid-cols-[1fr_320px]">
@@ -23,8 +25,9 @@ export default function Standings({ teams, matches, getTeam, loading }) {
   const standings = calcStandings(teams, matches);
   const latest = matches
     .filter((m) => m.status === "completed")
-    .slice(-3)
+    .slice()
     .reverse();
+  const visibleResults = showAllResults ? latest : latest.slice(0, 3);
   const upcoming = matches.filter((m) => m.status === "upcoming").slice(0, 3);
 
   return (
@@ -123,16 +126,34 @@ export default function Standings({ teams, matches, getTeam, loading }) {
       </div>
 
       <div>
-        <SectionLabel>Latest results</SectionLabel>
-        <div className="mb-6 space-y-2.5">
-          {latest.length ? (
-            latest.map((m) => (
-              <ResultCard key={m.id} match={m} getTeam={getTeam} />
-            ))
-          ) : (
-            <EmptyState title="No results yet" />
-          )}
+        <SectionLabel>All results</SectionLabel>
+        <div className="mb-3">
+          <div className="space-y-2.5">
+            {visibleResults.length ? (
+              visibleResults.map((m) => (
+                <ResultCard key={m.id} match={m} getTeam={getTeam} />
+              ))
+            ) : (
+              <EmptyState title="No results yet" />
+            )}
+          </div>
         </div>
+        {latest.length > 3 && (
+          <button
+            type="button"
+            onClick={() => setShowAllResults((current) => !current)}
+            className="mb-5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 transition-all duration-200 hover:border-ember-500/50 hover:bg-ember-500/5 hover:text-ember-400"
+          >
+            <span>{showAllResults ? "Show less" : "Show all"}</span>
+            <span
+              className={`text-[10px] leading-none transition-transform duration-200 ${
+                showAllResults ? "rotate-180" : ""
+              }`}
+            >
+              ↓
+            </span>
+          </button>
+        )}
         <SectionLabel>Next up</SectionLabel>
         <div className="space-y-2.5">
           {upcoming.length ? (
@@ -164,19 +185,19 @@ function ResultCard({ match: m, getTeam }) {
   if (!ta || !tb) return null;
   const aWin = m.scoreA > m.scoreB;
   return (
-    <div className="relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-3.5">
+    <div className="relative overflow-hidden rounded-sm border border-ink-800 bg-ink-900 p-2">
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ink-700" />
-      <div className="mb-2 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-ink-600">
+      <div className="mb-1 flex justify-between font-mono text-[8px] font-bold uppercase tracking-wider text-ink-600">
         <span>
           Match {m.num} · R{m.round}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1.5">
         <TeamCol team={ta} score={m.scoreA} winner={aWin} />
-        <div className="text-[11px] font-bold text-ink-700">:</div>
+        <div className="text-[9px] font-bold text-ink-700">:</div>
         <TeamCol team={tb} score={m.scoreB} winner={!aWin} />
       </div>
-      <div className="mt-2 text-center text-[9px] font-bold uppercase tracking-wider text-ink-600">
+      <div className="mt-1 text-center text-[8px] font-bold uppercase tracking-wider text-ink-600">
         Final · {aWin ? ta.abbr : tb.abbr} wins
       </div>
     </div>
@@ -185,15 +206,15 @@ function ResultCard({ match: m, getTeam }) {
 
 function TeamCol({ team, score, winner }) {
   return (
-    <div className="flex flex-1 flex-col items-center gap-1">
-      <TeamLogo team={team} size={30} fontSize={9} />
+    <div className="flex flex-1 flex-col items-center gap-0.5">
+      <TeamLogo team={team} size={22} fontSize={7} />
       <div
-        className={`text-[11px] font-bold ${winner ? "text-white" : "text-ink-600"}`}
+        className={`text-[9px] font-bold ${winner ? "text-white" : "text-ink-600"}`}
       >
         {team.abbr}
       </div>
       <div
-        className={`font-display text-xl font-bold ${winner ? "text-ember-500" : "text-ink-700"}`}
+        className={`font-display text-base font-bold ${winner ? "text-ember-500" : "text-ink-700"}`}
       >
         {score}
       </div>
