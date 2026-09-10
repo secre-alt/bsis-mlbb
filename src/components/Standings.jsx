@@ -12,6 +12,7 @@ const COLS = ["RANK", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
 
 export default function Standings({ teams, matches, getTeam, loading }) {
   const [showAllResults, setShowAllResults] = useState(false);
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
 
   if (loading) {
     return (
@@ -48,6 +49,11 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                 </div>
               ))}
             </div>
+            <div className="grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 bg-[var(--panel-soft)] px-3 py-1.5 text-[8px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)] sm:hidden">
+              <span className="text-center">Rank</span>
+              <span className="pl-1">Team</span>
+              <span className="text-center">Pts</span>
+            </div>
             {standings.map((s, i) => {
               const team = getTeam(s.id);
               if (!team) return null;
@@ -55,7 +61,22 @@ export default function Standings({ teams, matches, getTeam, loading }) {
               return (
                 <div
                   key={s.id}
-                  className={`relative grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-ink-800 px-4 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/25 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.04)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:py-0 sm:min-h-[52px] ${
+                  role="button"
+                  tabIndex={0}
+                  onClick={() =>
+                    setExpandedTeamId((current) =>
+                      current === s.id ? null : s.id,
+                    )
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setExpandedTeamId((current) =>
+                        current === s.id ? null : s.id,
+                      );
+                    }
+                  }}
+                  className={`relative grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 border-t border-ink-800 px-3 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/25 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.04)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:px-4 sm:py-0 sm:min-h-[52px] ${
                     rank === 1
                       ? "bg-ember-500/[0.06] hover:bg-ember-500/[0.08]"
                       : "bg-[var(--panel)]"
@@ -77,13 +98,13 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                   >
                     {rank}
                   </div>
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <TeamLogo team={team} />
+                  <div className="flex min-w-0 items-center gap-2">
+                    <TeamLogo team={team} size={22} fontSize={7} />
                     <div className="min-w-0">
-                      <div className="standings-short-name truncate text-[12px] font-black tracking-[0.08em]">
+                      <div className="standings-short-name truncate text-[11px] font-black tracking-[0.08em]">
                         {team.abbr}
                       </div>
-                      <div className="truncate text-[10px] text-ink-500">
+                      <div className="hidden truncate text-[9px] text-ink-500 sm:block">
                         {team.name}
                       </div>
                     </div>
@@ -112,9 +133,35 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                   <div className="hidden justify-center sm:flex">
                     <FormDots form={s.form} />
                   </div>
-                  <div className="text-center text-sm font-extrabold text-ember-500">
+                  <div className="text-center text-[12px] font-extrabold text-ember-500 sm:text-sm">
                     {s.pts}
                   </div>
+
+                  {expandedTeamId === s.id && (
+                    <div className="col-span-full mt-2 grid grid-cols-3 gap-2 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] p-2 sm:hidden">
+                      {[
+                        ["MP", s.mp],
+                        ["W", s.w],
+                        ["L", s.l],
+                        ["GW", s.gw],
+                        ["GL", s.gl],
+                        ["+/-", s.diff > 0 ? `+${s.diff}` : s.diff],
+                        ["Form", <FormDots key="form" form={s.form} />],
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="rounded-sm border border-[var(--line)] bg-[var(--panel)] px-1.5 py-2 text-center"
+                        >
+                          <div className="text-[7px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                            {label}
+                          </div>
+                          <div className="mt-1 text-[11px] font-bold text-[var(--text)]">
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
