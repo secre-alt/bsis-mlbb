@@ -1,25 +1,26 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState } from "react";
+import { Eye, EyeOff, X } from "lucide-react";
 
 export default function LoginModal({ onClose, onSignIn }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      setError('Enter your email and password.');
+      setError("Enter your email and password.");
       return;
     }
     setSubmitting(true);
-    setError('');
+    setError("");
     const { error: signInError } = await onSignIn(email.trim(), password);
     setSubmitting(false);
     if (signInError) {
       // Generic message — don't reveal whether the email exists.
-      setError('Incorrect email or password.');
+      setError("Incorrect email or password.");
     }
   };
 
@@ -39,14 +40,21 @@ export default function LoginModal({ onClose, onSignIn }) {
               Standings and results are public. Only organizers can edit.
             </p>
           </div>
-          <button onClick={onClose} className="text-ink-600 hover:text-ink-300" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="text-ink-600 hover:text-ink-300"
+            aria-label="Close"
+          >
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="login-email" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-ink-500">
+            <label
+              htmlFor="login-email"
+              className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-ink-500"
+            >
               Email
             </label>
             <input
@@ -60,28 +68,43 @@ export default function LoginModal({ onClose, onSignIn }) {
             />
           </div>
           <div>
-            <label htmlFor="login-password" className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-ink-500">
+            <label
+              htmlFor="login-password"
+              className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-ink-500"
+            >
               Password
             </label>
-            <input
-              id="login-password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-sm border border-ink-700 bg-ink-800 px-3 py-2.5 text-sm text-white outline-none transition focus:border-ember-500"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-sm border border-ink-700 bg-ink-800 px-3 py-2.5 pr-10 text-sm text-white outline-none transition focus:border-ember-500"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-ink-500 transition hover:text-ink-300"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
-          <div className="min-h-[18px] text-xs font-medium text-blood-500">{error}</div>
+          <div className="min-h-[18px] text-xs font-medium text-blood-500">
+            {error}
+          </div>
 
           <button
             type="submit"
             disabled={submitting}
             className="w-full rounded-sm bg-ember-500 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:opacity-90 disabled:opacity-40"
           >
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? "Signing in…" : "Sign in"}
           </button>
           <button
             type="button"
