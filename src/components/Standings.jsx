@@ -55,8 +55,10 @@ export default function Standings({ teams, matches, getTeam, loading }) {
               return (
                 <div
                   key={s.id}
-                  className={`relative grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-ink-800 px-4 py-3 first:border-t-0 hover:bg-slate-200/80 sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:py-0 sm:min-h-[52px] ${
-                    rank === 1 ? "bg-ember-500/[0.06]" : ""
+                  className={`relative grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-ink-800 px-4 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/25 hover:bg-ink-800/80 hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.04)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:py-0 sm:min-h-[52px] ${
+                    rank === 1
+                      ? "bg-ember-500/[0.06] hover:bg-ember-500/[0.08]"
+                      : "bg-ink-900/40"
                   }`}
                 >
                   <span
