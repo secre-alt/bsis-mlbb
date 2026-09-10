@@ -37,7 +37,7 @@ export default function Nav({
   };
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-ink-800 bg-ink-900/95 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur">
+    <nav className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--panel)] shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
       <div className="mx-auto max-w-6xl px-5 py-2.5">
         <div className="flex items-center gap-3">
           <div className="flex shrink-0 items-center gap-1.5 font-display text-[15px] font-black tracking-[0.18em] sm:text-[17px]">
@@ -97,7 +97,7 @@ export default function Nav({
               }
               aria-expanded={isOpen}
               onClick={() => setIsOpen((current) => !current)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-ink-700 text-ink-300 transition hover:border-ink-600 hover:text-white"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-[var(--line)] text-[var(--text-soft)] transition hover:border-[var(--line-soft)] hover:text-[var(--text)]"
             >
               {isOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -105,7 +105,7 @@ export default function Nav({
         </div>
 
         {isOpen && (
-          <div className="mt-3 border-t border-ink-800 pt-3 md:hidden">
+          <div className="mt-3 border-t border-[var(--line)] pt-3 md:hidden">
             <div className="flex flex-col gap-1">
               {PUBLIC_TABS.map((t) => (
                 <TabButton
@@ -119,14 +119,14 @@ export default function Nav({
             </div>
 
             {isAdmin && (
-              <div className="mt-3 border-t border-ink-800 pt-3">
+              <div className="mt-3 border-t border-[var(--line)] pt-3">
                 <div className="mb-2 flex items-center gap-2 px-1">
-                  <div className="h-px flex-1 bg-ink-800" />
+                  <div className="h-px flex-1 bg-[var(--line)]" />
                   <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-ember-400">
                     <ShieldCheck size={10} />
                     Admin
                   </span>
-                  <div className="h-px flex-1 bg-ink-800" />
+                  <div className="h-px flex-1 bg-[var(--line)]" />
                 </div>
                 <div className="flex flex-col gap-1">
                   {ADMIN_TABS.map((t) => (
@@ -143,7 +143,7 @@ export default function Nav({
               </div>
             )}
 
-            <div className="mt-3 border-t border-ink-800 pt-3">
+            <div className="mt-3 border-t border-[var(--line)] pt-3">
               <div className="flex flex-col gap-2">
                 <ThemeToggleButton
                   theme={theme}
