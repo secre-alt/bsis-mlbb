@@ -1,15 +1,23 @@
-const SYNC_LABEL = { ok: "Live", err: "Offline", syncing: "Syncing", idle: "" };
+const SYNC_LABEL = {
+  ok: "Live",
+  err: "Offline",
+  syncing: "Syncing",
+  idle: "",
+  offline: "Offline",
+};
 const SYNC_COLOR = {
   ok: "text-rift-500",
   err: "text-blood-500",
   syncing: "text-ember-400",
   idle: "text-ink-500",
+  offline: "text-blood-500",
 };
 const SYNC_DOT = {
   ok: "bg-rift-500",
   err: "bg-blood-500",
   syncing: "bg-ember-500 animate-pulse-dot",
   idle: "bg-ink-600",
+  offline: "bg-blood-500",
 };
 
 export default function Hero({ teams, matches, syncStatus }) {

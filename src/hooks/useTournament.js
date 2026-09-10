@@ -56,10 +56,23 @@ export function useTournament() {
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [syncStatus, setSyncStatus] = useState("idle"); // idle | syncing | ok | err
+  const [syncStatus, setSyncStatus] = useState(
+    typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle",
+  ); // idle | syncing | ok | err | offline
   const channelRef = useRef(null);
 
   const loadAll = useCallback(async () => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const cached = readCachedTournament();
+      if (cached) {
+        setTeams(cached.teams);
+        setMatches(cached.matches);
+      }
+      setSyncStatus("offline");
+      setLoading(false);
+      return;
+    }
+
     setSyncStatus("syncing");
     try {
       const [{ data: teamsData, error: te }, { data: matchesData, error: me }] =
@@ -82,7 +95,11 @@ export function useTournament() {
       if (cached) {
         setTeams(cached.teams);
         setMatches(cached.matches);
-        setSyncStatus("err");
+        setSyncStatus(
+          typeof navigator !== "undefined" && !navigator.onLine
+            ? "offline"
+            : "err",
+        );
       } else {
         setSyncStatus("err");
       }
@@ -103,6 +120,32 @@ export function useTournament() {
       setLoading(false);
       return;
     }
+
+    const handleOnline = () => {
+      setSyncStatus("syncing");
+      loadAll();
+    };
+    const handleOffline = () => {
+      const cached = readCachedTournament();
+      if (cached) {
+        setTeams(cached.teams);
+        setMatches(cached.matches);
+      }
+      setSyncStatus("offline");
+      setLoading(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      handleOffline();
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }
+
     loadAll();
     channelRef.current = supabase
       .channel("bsis-mlbb")
@@ -118,6 +161,8 @@ export function useTournament() {
       )
       .subscribe();
     return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       if (channelRef.current) supabase.removeChannel(channelRef.current);
     };
   }, [loadAll]);

@@ -168,6 +168,13 @@ function AppShell() {
         matches={data.matches}
         syncStatus={data.syncStatus}
       />
+      {(!navigator.onLine || data.syncStatus === "offline") && (
+        <div className="mx-auto max-w-6xl px-5 pb-0 pt-4">
+          <div className="rounded-md border border-blood-500/30 bg-blood-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-blood-500">
+            Offline mode · showing last synced data
+          </div>
+        </div>
+      )}
       {content}
       {showLogin && (
         <LoginModal
