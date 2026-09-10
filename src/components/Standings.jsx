@@ -184,12 +184,13 @@ function ResultCard({ match: m, getTeam }) {
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   const aWin = m.scoreA > m.scoreB;
+  const currentWeek = 1;
   return (
     <div className="group relative overflow-hidden rounded-sm border border-ink-800 bg-ink-900 p-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_10px_18px_rgba(0,0,0,0.08)]">
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ink-700 transition-colors duration-200 group-hover:bg-ember-500" />
       <div className="mb-1 flex justify-between font-mono text-[8px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · R{m.round} · BO3
+          Match {m.num} · Week {currentWeek} · BO3
         </span>
       </div>
       <div className="flex items-center justify-between gap-1.5">
@@ -226,12 +227,13 @@ function UpcomingCard({ match: m, getTeam }) {
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
+  const currentWeek = 1;
   return (
     <div className="group relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)]">
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ember-500 transition-colors duration-200 group-hover:bg-amber-400" />
       <div className="mb-2 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · R{m.round} · BO3
+          Match {m.num} · Week {currentWeek} · BO3
         </span>
         <span className="text-ember-500">{m.time || ""}</span>
       </div>
