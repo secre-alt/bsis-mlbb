@@ -182,6 +182,46 @@ function AppShell() {
           onSignIn={handleSignIn}
         />
       )}
+
+      <footer className="border-t border-[var(--line)] bg-[var(--panel-soft)]/90 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-center gap-3 px-4 py-4 text-[10px] font-medium tracking-[0.08em] text-[var(--muted)]">
+          <span className="inline-flex items-center gap-2 text-center">
+            <span
+              className="font-medium text-[var(--muted)]"
+              aria-label="Made with love"
+            >
+              Made with
+            </span>
+            <span
+              className="text-base leading-none text-[var(--accent)]"
+              aria-hidden="true"
+            >
+              ♥
+            </span>
+            <span className="font-medium text-[var(--muted)]">by</span>
+            <span className="text-[11px] font-black tracking-[0.16em] text-[var(--accent)] drop-shadow-[0_0_12px_rgba(255,120,56,0.28)]">
+              secre-alt
+            </span>
+          </span>
+
+          <a
+            href="https://www.facebook.com/rencruxx/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Visit Facebook profile"
+            title="Facebook"
+            className="group inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--accent)] bg-[var(--panel)] text-[var(--accent)] shadow-[0_0_0_1px_rgba(255,120,56,0.18)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--panel)] hover:shadow-[0_0_0_1px_rgba(255,120,56,0.4),0_0_18px_rgba(255,120,56,0.30)]"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="h-3.5 w-3.5 fill-current transition-transform duration-300 ease-out group-hover:scale-110"
+            >
+              <path d="M13.5 22v-8h2.5l.5-3h-3V7.5c0-.9.3-1.5 1.6-1.5H16V3.2c-.3 0-1.2-.2-2.3-.2-2.3 0-3.9 1.4-3.9 4V11H8v3h2.8v8h2.7Z" />
+            </svg>
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

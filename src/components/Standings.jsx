@@ -34,22 +34,31 @@ export default function Standings({ teams, matches, getTeam, loading }) {
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 md:grid-cols-[1fr_320px]">
       <div>
-        <SectionLabel>Standings</SectionLabel>
+        <div className="mb-3 flex items-center gap-2 px-1">
+          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-ember-500 shadow-[0_0_10px_rgba(255,120,56,0.7)]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-ember-400">
+            Standings
+          </span>
+        </div>
         {standings.length ? (
-          <div className="overflow-hidden rounded-md border border-ink-800">
-            <div className="hidden grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] gap-1 bg-ink-950 px-4 py-2 sm:grid">
-              {COLS.map((c, i) => (
+          <div className="overflow-hidden rounded-xl border border-ember-500/20 bg-[linear-gradient(180deg,var(--accent-soft),var(--panel))] shadow-[0_12px_24px_rgba(15,23,42,0.12)]">
+            <div className="hidden grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] gap-1 bg-[rgba(17,24,39,0.9)] px-4 py-2.5 sm:grid">
+              <div className="text-center text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                {COLS[0]}
+              </div>
+              <div className="pl-4 text-left text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                {COLS[1]}
+              </div>
+              {COLS.slice(2).map((c) => (
                 <div
                   key={c}
-                  className={`text-[9px] font-bold uppercase tracking-wider text-ink-600 ${
-                    i === 1 ? "text-left" : "text-center"
-                  }`}
+                  className="text-center text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]"
                 >
                   {c}
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 bg-[var(--panel-soft)] px-3 py-1.5 text-[8px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)] sm:hidden">
+            <div className="grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 bg-[var(--panel-soft)] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)] sm:hidden">
               <span className="text-center">Rank</span>
               <span className="pl-1">Team</span>
               <span className="text-center">Pts</span>
@@ -76,43 +85,47 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                       );
                     }
                   }}
-                  className={`relative grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 border-t border-ink-800 px-3 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/25 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.04)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:px-4 sm:py-0 sm:min-h-[52px] ${
+                  className={`relative grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 border-t border-[var(--line)] px-3 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/30 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.06)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:px-4 sm:py-0 sm:min-h-[56px] ${
                     rank === 1
-                      ? "bg-ember-500/[0.06] hover:bg-ember-500/[0.08]"
-                      : "bg-[var(--panel)]"
-                  } ${expandedTeamId === s.id ? "shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18)] sm:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.18)]" : ""}`}
+                      ? "bg-[linear-gradient(90deg,var(--accent-soft),rgba(255,120,56,0.02))] hover:bg-[linear-gradient(90deg,rgba(255,120,56,0.14),rgba(255,120,56,0.04))]"
+                      : rank === 2
+                        ? "bg-[rgba(148,163,184,0.03)]"
+                        : rank === 3
+                          ? "bg-[rgba(245,158,11,0.03)]"
+                          : "bg-[var(--panel)]"
+                  } ${expandedTeamId === s.id ? "shadow-[inset_0_0_0_1px_rgba(255,120,56,0.2)]" : ""}`}
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-[3px] ${
                       rank === 1
-                        ? "bg-ember-500"
+                        ? "bg-ember-500 shadow-[0_0_16px_rgba(255,120,56,0.6)]"
                         : rank === 2
-                          ? "bg-ink-500"
+                          ? "bg-slate-400"
                           : rank === 3
-                            ? "bg-amber-800"
+                            ? "bg-amber-500"
                             : "bg-transparent"
                     }`}
                   />
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-center text-sm font-bold ${
+                    className={`standings-rank-badge standings-rank-badge--${
                       rank === 1
-                        ? "bg-ember-500/12 text-ember-500 ring-1 ring-ember-500/20"
+                        ? "gold"
                         : rank === 2
-                          ? "bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/10"
+                          ? "silver"
                           : rank === 3
-                            ? "bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/15"
-                            : "bg-[var(--panel-soft)] text-[var(--text-muted)] ring-1 ring-[var(--line)]"
-                    }`}
+                            ? "bronze"
+                            : "muted"
+                    } flex h-7 w-7 items-center justify-center rounded-full text-center text-sm font-black`}
                   >
                     {rank}
                   </div>
                   <div className="flex min-w-0 items-center gap-2">
                     <TeamLogo team={team} size={22} fontSize={7} />
                     <div className="min-w-0">
-                      <div className="standings-short-name truncate text-[11px] font-black tracking-[0.08em]">
+                      <div className="standings-short-name truncate text-[11px] font-black tracking-[0.08em] text-[var(--text)]">
                         {team.abbr}
                       </div>
-                      <div className="hidden truncate text-[9px] text-ink-500 sm:block">
+                      <div className="hidden truncate text-[9px] text-[var(--text-muted)] sm:block">
                         {team.name}
                       </div>
                     </div>
@@ -133,7 +146,7 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                         ? "text-rift-500"
                         : s.diff < 0
                           ? "text-blood-500"
-                          : "text-ink-600"
+                          : "text-[var(--text-muted)]"
                     }
                   >
                     {s.diff > 0 ? `+${s.diff}` : s.diff}
@@ -142,7 +155,7 @@ export default function Standings({ teams, matches, getTeam, loading }) {
                     <FormDots form={s.form} />
                   </div>
                   <div className="relative flex items-center justify-center">
-                    <div className="text-center text-[12px] font-extrabold text-ember-500 sm:text-sm">
+                    <div className="text-center text-[12px] font-black text-ember-500 sm:text-sm">
                       {s.pts}
                     </div>
                     <span
@@ -186,48 +199,62 @@ export default function Standings({ teams, matches, getTeam, loading }) {
         ) : (
           <EmptyState title="No teams yet" />
         )}
-        <p className="mt-2 px-1 text-[10px] text-ink-700">
+        <p className="mt-2 px-1 text-[10px] text-[var(--text-muted)]">
           Sorted by points → wins → game differential → game wins
         </p>
       </div>
 
-      <div>
-        <SectionLabel>All results</SectionLabel>
-        <div className="mb-3">
+      <div className="space-y-5">
+        <div className="rounded-lg border border-ember-500/20 bg-[linear-gradient(180deg,var(--accent-soft),var(--panel-soft))] p-2.5 shadow-[0_8px_18px_rgba(255,120,56,0.08)]">
+          <div className="mb-2 flex items-center gap-2 px-1">
+            <span className="inline-flex h-2 w-2 rounded-full bg-ember-500 shadow-[0_0_12px_rgba(255,120,56,0.7)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-ember-400">
+              Next up
+            </span>
+          </div>
           <div className="space-y-2.5">
-            {visibleResults.length ? (
-              visibleResults.map((m) => (
-                <ResultCard key={m.id} match={m} getTeam={getTeam} />
+            {upcoming.length ? (
+              upcoming.map((m) => (
+                <UpcomingCard key={m.id} match={m} getTeam={getTeam} />
               ))
             ) : (
-              <EmptyState title="No results yet" />
+              <EmptyState title="No upcoming matches" />
             )}
           </div>
         </div>
-        {latest.length > 3 && (
-          <button
-            type="button"
-            onClick={() => setShowAllResults((current) => !current)}
-            className="mb-5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 transition-all duration-200 hover:border-ember-500/50 hover:bg-ember-500/5 hover:text-ember-400"
-          >
-            <span>{showAllResults ? "Show less" : "Show all"}</span>
-            <span
-              className={`text-[10px] leading-none transition-transform duration-200 ${
-                showAllResults ? "rotate-180" : ""
-              }`}
-            >
-              ↓
+
+        <div className="rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 p-2.5">
+          <div className="mb-2 px-1">
+            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">
+              All results
             </span>
-          </button>
-        )}
-        <SectionLabel>Next up</SectionLabel>
-        <div className="space-y-2.5">
-          {upcoming.length ? (
-            upcoming.map((m) => (
-              <UpcomingCard key={m.id} match={m} getTeam={getTeam} />
-            ))
-          ) : (
-            <EmptyState title="No upcoming matches" />
+          </div>
+          <div className="mb-3">
+            <div className="space-y-2.5">
+              {visibleResults.length ? (
+                visibleResults.map((m) => (
+                  <ResultCard key={m.id} match={m} getTeam={getTeam} />
+                ))
+              ) : (
+                <EmptyState title="No results yet" />
+              )}
+            </div>
+          </div>
+          {latest.length > 3 && (
+            <button
+              type="button"
+              onClick={() => setShowAllResults((current) => !current)}
+              className="mb-5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 transition-all duration-200 hover:border-ember-500/50 hover:bg-ember-500/5 hover:text-ember-400"
+            >
+              <span>{showAllResults ? "Show less" : "Show all"}</span>
+              <span
+                className={`text-[10px] leading-none transition-transform duration-200 ${
+                  showAllResults ? "rotate-180" : ""
+                }`}
+              >
+                ↓
+              </span>
+            </button>
           )}
         </div>
       </div>
