@@ -27,7 +27,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Orbitron"', "sans-serif"],
+        display: ['"Heimat Mono"', "monospace"],
         body: ['"Inter"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
       },
