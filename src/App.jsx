@@ -44,6 +44,51 @@ function AppShell() {
     setPage(target);
   };
 
+  if (data.loading) {
+    return (
+      <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text)]">
+        <Nav
+          page={page}
+          onNavigate={navigate}
+          isAdmin={false}
+          onLoginClick={() => {}}
+          theme={theme}
+          onToggleTheme={() =>
+            setTheme((current) => (current === "dark" ? "light" : "dark"))
+          }
+        />
+
+        <div className="mx-auto max-w-6xl px-5 py-6">
+          <div className="mb-6 h-28 animate-shimmer rounded-md border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
+
+          <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+            <div className="space-y-4">
+              <div className="h-6 w-32 animate-shimmer rounded-sm border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
+              <div className="overflow-hidden rounded-md border border-ink-800">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-[52px] animate-shimmer border-b border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%] last:border-b-0"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="h-6 w-28 animate-shimmer rounded-sm border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]" />
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-28 animate-shimmer rounded-md border border-ink-800 bg-[linear-gradient(90deg,#18181b_25%,#232326_50%,#18181b_75%)] bg-[length:200%_100%]"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSignIn = async (email, password) => {
     const { error } = await signIn(email, password);
     if (!error) {
