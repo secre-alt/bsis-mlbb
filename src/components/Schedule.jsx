@@ -45,7 +45,7 @@ export default function Schedule({ matches, getTeam, loading }) {
         rounds.map((r) => (
           <div key={r} className="mb-6">
             <div className="mb-2.5 border-b border-ink-800 pb-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-ember-500">
-              Round {r}
+              {r === 1 ? 'Week 1' : `Round ${r}`}
             </div>
             <div className="space-y-1.5">
               {filtered
