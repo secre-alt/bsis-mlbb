@@ -31,6 +31,7 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
 
   const begin = (event, mode) => {
     event.preventDefault();
+    event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     gestureRef.current = { mode, id: event.pointerId, x: event.clientX, y: event.clientY, crop };
   };
@@ -96,7 +97,7 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
         <div className="grid gap-5 p-5 sm:grid-cols-[224px_1fr]">
           <div>
             <div className="relative mx-auto h-56 w-56 overflow-hidden bg-[var(--panel-soft)]" onPointerMove={move} onPointerUp={() => { gestureRef.current = null; }} onPointerCancel={() => { gestureRef.current = null; }}>
-              {source ? <><img src={source.url} alt="Logo crop source" draggable="false" className="absolute h-full w-full object-cover" /><span className="absolute inset-0 bg-black/45" /><div className="absolute cursor-move touch-none border-2 border-ember-400 shadow-[0_0_0_999px_rgba(0,0,0,0.24)]" style={{ left: crop.x, top: crop.y, width: crop.size, height: crop.size }} onPointerDown={(event) => begin(event, "move")}><span className="absolute -bottom-2 -right-2 h-5 w-5 cursor-nwse-resize rounded-full border-2 border-white bg-ember-500" onPointerDown={(event) => begin(event, "resize")} /></div></> : <div className="flex h-full items-center justify-center"><TeamLogo team={team} size={104} fontSize={30} /></div>}
+              {source ? <><img src={source.url} alt="Logo crop source" draggable="false" className="absolute h-full w-full object-cover" /><div className="absolute cursor-move touch-none border-2 border-ember-400 shadow-[0_0_0_999px_rgba(0,0,0,0.55)]" style={{ left: crop.x, top: crop.y, width: crop.size, height: crop.size }} onPointerDown={(event) => begin(event, "move")}><span className="absolute -bottom-2 -right-2 h-5 w-5 cursor-nwse-resize rounded-full border-2 border-white bg-ember-500 shadow" onPointerDown={(event) => begin(event, "resize")} /></div></> : <div className="flex h-full items-center justify-center"><TeamLogo team={team} size={104} fontSize={30} /></div>}
             </div>
             <p className="mt-2 text-center text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{source ? "Drag frame · resize corner" : "Square crop preview"}</p>
           </div>
