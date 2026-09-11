@@ -26,38 +26,42 @@ export function TeamLogo({ team, size = 28, fontSize = 9 }) {
           clipPath: "polygon(50% 0%, 94% 19%, 85% 77%, 50% 100%, 15% 77%, 6% 19%)",
         }}
       />
-      <span
-        aria-hidden="true"
-        className="absolute inset-[12%]"
-        style={{
-          background: "rgba(8, 12, 20, 0.72)",
-          clipPath: "polygon(50% 0%, 92% 20%, 81% 75%, 50% 100%, 19% 75%, 8% 20%)",
-        }}
-      />
-      <span
-        aria-hidden="true"
-        className="absolute left-[21%] right-[21%] top-[20%] h-[8%]"
-        style={{ background: c.bg, transform: "skewX(-24deg)" }}
-      />
       {team?.logoUrl && (
         <img
           src={team.logoUrl}
           alt=""
-          className="absolute inset-[12%] z-10 h-[76%] w-[76%] object-cover"
+          className="absolute inset-0 z-10 h-full w-full object-cover"
           style={{
-            clipPath: "polygon(50% 0%, 92% 20%, 81% 75%, 50% 100%, 19% 75%, 8% 20%)",
+            clipPath: "polygon(50% 0%, 94% 19%, 85% 77%, 50% 100%, 15% 77%, 6% 19%)",
           }}
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
         />
       )}
-      <span
-        className="relative z-10 font-display font-black leading-none tracking-[-0.12em]"
-        style={{ color: monogramColor, fontSize, textShadow: "0 2px 3px rgba(0,0,0,0.5)" }}
-      >
-        {monogram}
-      </span>
+      {!team?.logoUrl && (
+        <>
+          <span
+            aria-hidden="true"
+            className="absolute inset-[12%]"
+            style={{
+              background: "rgba(8, 12, 20, 0.72)",
+              clipPath: "polygon(50% 0%, 92% 20%, 81% 75%, 50% 100%, 19% 75%, 8% 20%)",
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="absolute left-[21%] right-[21%] top-[20%] h-[8%]"
+            style={{ background: c.bg, transform: "skewX(-24deg)" }}
+          />
+          <span
+            className="relative z-10 font-display font-black leading-none tracking-[-0.12em]"
+            style={{ color: monogramColor, fontSize, textShadow: "0 2px 3px rgba(0,0,0,0.5)" }}
+          >
+            {monogram}
+          </span>
+        </>
+      )}
     </div>
   );
 }
