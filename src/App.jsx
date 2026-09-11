@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { isConfigured } from "./lib/supabaseClient";
 import { useAuth } from "./hooks/useAuth";
 import { useTournament } from "./hooks/useTournament";
@@ -9,14 +9,17 @@ const PWA_UPDATE_MESSAGE = "A new version is ready. Refresh to update.";
 
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
-import LoginModal from "./components/LoginModal";
 import LockedNotice from "./components/LockedNotice";
 import SetupScreen from "./components/SetupScreen";
 import Standings from "./components/Standings";
-import Matches from "./components/Matches";
-import Schedule from "./components/Schedule";
-import Teams from "./components/Teams";
-import AdminPanel from "./components/AdminPanel";
+
+// These views are not needed to render the public standings page. Loading
+// them only when requested keeps the first visit lean on slow connections.
+const LoginModal = lazy(() => import("./components/LoginModal"));
+const Matches = lazy(() => import("./components/Matches"));
+const Schedule = lazy(() => import("./components/Schedule"));
+const Teams = lazy(() => import("./components/Teams"));
+const AdminPanel = lazy(() => import("./components/AdminPanel"));
 
 function AppShell() {
   const [page, setPage] = useState(() => {
@@ -203,14 +206,16 @@ function AppShell() {
             </div>
           </div>
         )}
-        {content}
+        <Suspense fallback={<PageLoading />}>{content}</Suspense>
       </div>
 
       {showLogin && (
-        <LoginModal
-          onClose={() => setShowLogin(false)}
-          onSignIn={handleSignIn}
-        />
+        <Suspense fallback={null}>
+          <LoginModal
+            onClose={() => setShowLogin(false)}
+            onSignIn={handleSignIn}
+          />
+        </Suspense>
       )}
 
       <footer className="border-t border-[var(--line)] bg-[var(--panel-soft)]/90 backdrop-blur-sm">
@@ -252,6 +257,14 @@ function AppShell() {
           </a>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function PageLoading() {
+  return (
+    <div className="mx-auto max-w-6xl px-5 py-6">
+      <div className="h-64 animate-shimmer rounded-md border border-[var(--line)] bg-[linear-gradient(90deg,var(--panel-soft)_25%,var(--panel-subtle)_50%,var(--panel-soft)_75%)] bg-[length:200%_100%]" />
     </div>
   );
 }

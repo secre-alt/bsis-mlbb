@@ -1,4 +1,4 @@
-const CACHE_VERSION = "bsis-mlbb-v2";
+const CACHE_VERSION = "bsis-mlbb-v3";
 const CORE_ASSETS = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -36,15 +36,21 @@ self.addEventListener("fetch", (event) => {
 
   if (isHtmlRequest) {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches
-            .open(CACHE_VERSION)
-            .then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match("/index.html")),
+      caches.match(event.request).then((cached) => {
+        const refresh = fetch(event.request)
+          .then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, copy));
+            }
+            return response;
+          })
+          .catch(() => null);
+
+        // A returning visitor sees the cached shell immediately while a
+        // background request keeps it fresh for the next navigation.
+        return cached || refresh.then((response) => response || caches.match("/index.html"));
+      }),
     );
     return;
   }
