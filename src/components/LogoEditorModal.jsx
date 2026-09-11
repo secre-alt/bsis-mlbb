@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Move, Upload, X, ZoomIn } from "lucide-react";
+import { Hand, Move, RotateCcw, Upload, X, ZoomIn } from "lucide-react";
 import { TeamLogo } from "./shared";
 
 const OUTPUT_SIZE = 512;
@@ -7,6 +7,7 @@ const PREVIEW_SIZE = 224;
 
 export default function LogoEditorModal({ team, onClose, onSave }) {
   const inputRef = useRef(null);
+  const dragRef = useRef(null);
   const [source, setSource] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -90,6 +91,36 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
     ? Math.max(PREVIEW_SIZE / source.width, PREVIEW_SIZE / source.height) * zoom
     : 1;
 
+  const resetCrop = () => {
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const startDrag = (event) => {
+    if (!source) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      offset,
+    };
+  };
+
+  const dragImage = (event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const scaleToOutput = OUTPUT_SIZE / PREVIEW_SIZE;
+    setOffset({
+      x: Math.max(-180, Math.min(180, drag.offset.x + (event.clientX - drag.x) * scaleToOutput)),
+      y: Math.max(-180, Math.min(180, drag.offset.y + (event.clientY - drag.y) * scaleToOutput)),
+    });
+  };
+
+  const stopDrag = (event) => {
+    if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null;
+  };
+
   return (
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
@@ -120,7 +151,13 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
 
         <div className="grid gap-5 p-5 sm:grid-cols-[224px_1fr]">
           <div>
-            <div className="relative mx-auto h-56 w-56 overflow-hidden bg-[var(--panel-soft)] shadow-[inset_0_0_0_1px_var(--line)]">
+            <div
+              className={`relative mx-auto h-56 w-56 overflow-hidden bg-[var(--panel-soft)] shadow-[inset_0_0_0_1px_var(--line)] ${source ? "cursor-grab touch-none active:cursor-grabbing" : ""}`}
+              onPointerDown={startDrag}
+              onPointerMove={dragImage}
+              onPointerUp={stopDrag}
+              onPointerCancel={stopDrag}
+            >
               {source ? (
                 <img
                   src={source.url}
@@ -142,7 +179,7 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
               <span className="pointer-events-none absolute inset-0 border-2 border-ember-500/80 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.45)]" />
             </div>
             <p className="mt-2 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-              Square crop preview
+              {source ? "Drag image to position" : "Square crop preview"}
             </p>
           </div>
 
@@ -164,6 +201,10 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
 
             {source && (
               <div className="mt-5 space-y-4">
+                <div className="rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] px-3 py-2 text-[10px] leading-relaxed text-[var(--text-muted)]">
+                  <span className="mr-1 inline-flex align-text-bottom text-ember-500"><Hand size={13} /></span>
+                  Drag the image in the preview, then use the controls below for fine adjustments.
+                </div>
                 <Control label="Zoom" icon={<ZoomIn size={13} />}>
                   <input
                     type="range"
@@ -195,6 +236,13 @@ export default function LogoEditorModal({ team, onClose, onSave }) {
                     className="w-full accent-ember-500"
                   />
                 </Control>
+                <button
+                  type="button"
+                  onClick={resetCrop}
+                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition hover:text-ember-400"
+                >
+                  <RotateCcw size={12} /> Reset crop
+                </button>
               </div>
             )}
 

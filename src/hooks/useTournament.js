@@ -218,7 +218,16 @@ export function useTournament() {
       .update({ logo_url: logoUrl })
       .eq("id", team.id);
 
-    return { error: updateError?.message };
+    if (updateError) return { error: updateError.message };
+
+    // The fixed object path is overwritten above; update local state now so
+    // the old mark disappears immediately instead of waiting for Realtime.
+    setTeams((current) =>
+      current.map((item) =>
+        item.id === team.id ? { ...item, logoUrl } : item,
+      ),
+    );
+    return { error: null, logoUrl };
   }, []);
 
   const submitMatchResult = useCallback(
