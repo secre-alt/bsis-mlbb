@@ -4,7 +4,13 @@ import { supabase } from "../lib/supabaseClient";
 const STORAGE_KEY = "bsis-mlbb-cache-v1";
 
 function normalizeTeam(t) {
-  return { id: t.id, abbr: t.abbr, name: t.name, colorIdx: t.color_idx ?? 0 };
+  return {
+    id: t.id,
+    abbr: t.abbr,
+    name: t.name,
+    colorIdx: t.color_idx ?? 0,
+    logoUrl: t.logo_url ?? null,
+  };
 }
 function normalizeMatch(m) {
   return {
@@ -189,6 +195,32 @@ export function useTournament() {
     return { error: error?.message };
   }, []);
 
+  const uploadTeamLogo = useCallback(async (team, file) => {
+    if (!file) return { error: "Choose an image first." };
+    if (file.size > 3 * 1024 * 1024) {
+      return { error: "Logo image must be 3 MB or smaller." };
+    }
+
+    const path = `team-${team.id}/logo.png`;
+    const { error: uploadError } = await supabase.storage
+      .from("team-logos")
+      .upload(path, file, {
+        upsert: true,
+        contentType: "image/png",
+        cacheControl: "3600",
+      });
+    if (uploadError) return { error: uploadError.message };
+
+    const { data } = supabase.storage.from("team-logos").getPublicUrl(path);
+    const logoUrl = `${data.publicUrl}?v=${Date.now()}`;
+    const { error: updateError } = await supabase
+      .from("teams")
+      .update({ logo_url: logoUrl })
+      .eq("id", team.id);
+
+    return { error: updateError?.message };
+  }, []);
+
   const submitMatchResult = useCallback(
     async ({ num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
       if (teamA === teamB) return { error: "Teams cannot be the same." };
@@ -248,6 +280,7 @@ export function useTournament() {
     getTeam,
     addTeam,
     deleteTeam,
+    uploadTeamLogo,
     submitMatchResult,
     scheduleMatch,
   };

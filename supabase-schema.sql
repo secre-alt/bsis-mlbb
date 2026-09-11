@@ -9,8 +9,12 @@ create table if not exists teams (
   abbr       text not null check (char_length(abbr) between 1 and 5),
   name       text not null check (char_length(name) between 1 and 80),
   color_idx  int  not null default 0 check (color_idx between 0 and 5),
+  logo_url   text,
   created_at timestamptz not null default now()
 );
+
+-- Safe to run on an existing installation created before team logos existed.
+alter table teams add column if not exists logo_url text;
 
 create table if not exists matches (
   id          bigint generated always as identity primary key,
@@ -90,6 +94,23 @@ create policy "admins can delete matches" on matches
 -- Nobody needs to read the admins table from the client.
 create policy "no client access to admins" on admins
   for select using (false);
+
+-- ── Team logo uploads ─────────────────────────────────────────────────────
+-- The image files are public so viewers can display them, while only listed
+-- admins may create, replace, or remove them.
+insert into storage.buckets (id, name, public)
+values ('team-logos', 'team-logos', true)
+on conflict (id) do update set public = true;
+
+create policy "public can read team logos" on storage.objects
+  for select using (bucket_id = 'team-logos');
+create policy "admins can upload team logos" on storage.objects
+  for insert with check (bucket_id = 'team-logos' and is_admin());
+create policy "admins can update team logos" on storage.objects
+  for update using (bucket_id = 'team-logos' and is_admin())
+  with check (bucket_id = 'team-logos' and is_admin());
+create policy "admins can delete team logos" on storage.objects
+  for delete using (bucket_id = 'team-logos' and is_admin());
 
 -- ── Realtime ─────────────────────────────────────────────────────────────
 alter publication supabase_realtime add table teams;

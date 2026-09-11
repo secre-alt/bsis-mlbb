@@ -2,18 +2,62 @@ import { getColor } from "../lib/standings";
 
 export function TeamLogo({ team, size = 28, fontSize = 9 }) {
   const c = getColor(team);
+  const monogramColor = team?.abbr?.toUpperCase() === "PAMP" ? "#fff" : c.text;
+  const monogram = (team?.abbr || "?")
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 3)
+    .toUpperCase();
+
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full font-display font-bold"
+      role="img"
+      aria-label={`${team?.name || team?.abbr || "Team"} monogram`}
+      className="relative flex shrink-0 items-center justify-center"
       style={{
         width: size,
         height: size,
-        background: c.bg,
-        color: c.text,
-        fontSize,
       }}
     >
-      {team.abbr.slice(0, 3)}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 overflow-hidden shadow-[0_3px_10px_rgba(0,0,0,0.28)]"
+        style={{
+          background: c.bg,
+          clipPath: "polygon(50% 0%, 94% 19%, 85% 77%, 50% 100%, 15% 77%, 6% 19%)",
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-[12%]"
+        style={{
+          background: "rgba(8, 12, 20, 0.72)",
+          clipPath: "polygon(50% 0%, 92% 20%, 81% 75%, 50% 100%, 19% 75%, 8% 20%)",
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="absolute left-[21%] right-[21%] top-[20%] h-[8%]"
+        style={{ background: c.bg, transform: "skewX(-24deg)" }}
+      />
+      {team?.logoUrl && (
+        <img
+          src={team.logoUrl}
+          alt=""
+          className="absolute inset-[12%] z-10 h-[76%] w-[76%] object-cover"
+          style={{
+            clipPath: "polygon(50% 0%, 92% 20%, 81% 75%, 50% 100%, 19% 75%, 8% 20%)",
+          }}
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+      )}
+      <span
+        className="relative z-10 font-display font-black leading-none tracking-[-0.12em]"
+        style={{ color: monogramColor, fontSize, textShadow: "0 2px 3px rgba(0,0,0,0.5)" }}
+      >
+        {monogram}
+      </span>
     </div>
   );
 }

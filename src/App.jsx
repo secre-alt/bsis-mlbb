@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { isConfigured } from "./lib/supabaseClient";
 import { useAuth } from "./hooks/useAuth";
 import { useTournament } from "./hooks/useTournament";
+import { useVisitorPresence } from "./hooks/useVisitorPresence";
 import { ToastProvider, useToast } from "./hooks/useToast";
 
 const PWA_UPDATE_MESSAGE = "A new version is ready. Refresh to update.";
@@ -33,6 +34,7 @@ function AppShell() {
       : "light";
   });
   const { isAdmin, signIn, signOut } = useAuth();
+  const onlineVisitors = useVisitorPresence();
   const showToast = useToast();
   const data = useTournament();
 
@@ -191,6 +193,8 @@ function AppShell() {
           teams={data.teams}
           matches={data.matches}
           syncStatus={data.syncStatus}
+          onlineVisitors={onlineVisitors}
+          isAdmin={isAdmin}
         />
         {(!navigator.onLine || data.syncStatus === "offline") && (
           <div className="mx-auto max-w-6xl px-5 pb-0 pt-4">

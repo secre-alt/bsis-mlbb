@@ -40,7 +40,13 @@ function getWeekNumber(dateString, tournamentStartDate) {
   return Math.max(1, Math.floor(diffDays / 7) + 1);
 }
 
-export default function Hero({ teams, matches, syncStatus }) {
+export default function Hero({
+  teams,
+  matches,
+  syncStatus,
+  onlineVisitors,
+  isAdmin,
+}) {
   const completed = matches.filter((m) => m.status === "completed").length;
   const upcoming = matches.filter((m) => m.status === "upcoming").length;
   const tournamentStartDate =
@@ -60,6 +66,10 @@ export default function Hero({ teams, matches, syncStatus }) {
     { val: upcoming, label: "Upcoming" },
     { val: `Week ${currentWeek}`, label: "Current week", accent: true },
   ];
+
+  if (isAdmin && onlineVisitors !== null) {
+    stats.push({ val: onlineVisitors, label: "Online now", accent: true });
+  }
 
   return (
     <div className="border-b border-[var(--line)] bg-[var(--panel)] bg-grid-fade">

@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
-import { calcStandings, COLOR_NAMES, getColor } from '../lib/standings';
-import { SectionLabel, EmptyState, SkeletonBlock } from './shared';
+import { ImageUp, Trash2 } from 'lucide-react';
+import { calcStandings, COLOR_NAMES } from '../lib/standings';
+import { TeamLogo, SectionLabel, EmptyState, SkeletonBlock } from './shared';
 import { useToast } from '../hooks/useToast';
+import LogoEditorModal from './LogoEditorModal';
 
-export default function Teams({ teams, matches, addTeam, deleteTeam, loading }) {
+export default function Teams({ teams, matches, addTeam, deleteTeam, uploadTeamLogo, loading }) {
   const showToast = useToast();
   const [abbr, setAbbr] = useState('');
   const [name, setName] = useState('');
   const [colorIdx, setColorIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [logoTeam, setLogoTeam] = useState(null);
 
   if (loading) {
     return (
@@ -49,19 +51,13 @@ export default function Teams({ teams, matches, addTeam, deleteTeam, loading }) 
         <div className="space-y-1.5">
           {teams.length ? (
             teams.map((t) => {
-              const c = getColor(t);
               const s = rankMap[t.id] || { rank: '—', mp: 0, w: 0, l: 0, pts: 0 };
               return (
                 <div
                   key={t.id}
                   className="flex items-center gap-3 rounded-sm border border-ink-800 bg-ink-900 px-4 py-3"
                 >
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold"
-                    style={{ background: c.bg, color: c.text }}
-                  >
-                    {t.abbr.slice(0, 3)}
-                  </div>
+                  <TeamLogo team={t} size={38} fontSize={12} />
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-bold">
                       {t.abbr} <span className="font-normal text-ink-600">#{s.rank}</span>
@@ -71,12 +67,21 @@ export default function Teams({ teams, matches, addTeam, deleteTeam, loading }) 
                       {s.mp} MP · {s.w}W {s.l}L · {s.pts} PTS
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(t)}
-                    className="flex items-center gap-1 rounded-sm border border-blood-500/20 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-blood-500 transition hover:bg-blood-500/10"
-                  >
-                    <Trash2 size={11} /> Delete
-                  </button>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setLogoTeam(t)}
+                      className="flex items-center gap-1 rounded-sm border border-ember-500/25 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-ember-400 transition hover:bg-ember-500/10"
+                    >
+                      <ImageUp size={11} /> {t.logoUrl ? 'Replace logo' : 'Add logo'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(t)}
+                      className="flex items-center gap-1 rounded-sm border border-blood-500/20 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-blood-500 transition hover:bg-blood-500/10"
+                    >
+                      <Trash2 size={11} /> Delete
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -130,6 +135,17 @@ export default function Teams({ teams, matches, addTeam, deleteTeam, loading }) 
           </button>
         </form>
       </div>
+      {logoTeam && (
+        <LogoEditorModal
+          team={logoTeam}
+          onClose={() => setLogoTeam(null)}
+          onSave={async (file) => {
+            const result = await uploadTeamLogo(logoTeam, file);
+            if (!result.error) showToast(`${logoTeam.abbr} logo updated`, 'success');
+            return result;
+          }}
+        />
+      )}
     </div>
   );
 }
