@@ -77,7 +77,8 @@ export default function Standings({
     .sort(
       (a, b) =>
         new Date(b.completedAt || b.date || 0).getTime() -
-        new Date(a.completedAt || a.date || 0).getTime(),
+          new Date(a.completedAt || a.date || 0).getTime() ||
+        Number(b.num) - Number(a.num),
     );
   const visibleResults = showAllResults ? latest : latest.slice(0, 3);
   const tournamentStartDate = getTournamentStartDate(matches);

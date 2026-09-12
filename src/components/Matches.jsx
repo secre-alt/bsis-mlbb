@@ -14,7 +14,11 @@ export default function Matches({ matches, getTeam, loading }) {
   const completed = matches
     .filter((m) => m.status === "completed")
     .slice()
-    .reverse();
+    .sort((a, b) => {
+      const aTime = new Date(a.completedAt || a.date || 0).getTime() || 0;
+      const bTime = new Date(b.completedAt || b.date || 0).getTime() || 0;
+      return bTime - aTime || Number(b.num) - Number(a.num);
+    });
   const upcoming = matches.filter((m) => m.status === "upcoming");
   const tournamentStartDate = getTournamentStartDate(matches);
 
