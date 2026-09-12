@@ -195,13 +195,22 @@ export default function AdminPanel({
   };
 
   return (
-    <div className="mx-auto max-w-xl px-5 py-6">
+    <div className="mx-auto max-w-5xl px-5 py-7">
+      <div className="mb-6 flex flex-col justify-between gap-2 border-b border-[var(--line)] pb-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ember-500">Organizer workspace</p>
+          <h1 className="mt-1 text-xl font-semibold text-[var(--text)]">Match control</h1>
+        </div>
+        <p className="text-xs text-[var(--text-muted)]">Schedule fixtures and publish final results.</p>
+      </div>
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <section>
       <SectionLabel>
         {resultMatch ? `Input result — Match ${resultMatch.num}` : "Record match result"}
       </SectionLabel>
       <form
         onSubmit={handleSubmitResult}
-        className="mb-8 rounded-md border border-ink-800 bg-ink-900 p-6"
+        className="border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_8px_18px_var(--shadow)]"
       >
         <Row>
           <Field label="Match #">
@@ -276,26 +285,30 @@ export default function AdminPanel({
           </Field>
         </div>
 
-        <div className="mb-4 rounded-sm border border-ink-800 bg-ink-950 p-4">
-          <div className="mb-3 text-[10px] font-bold uppercase tracking-wider text-ink-500">
+        <div className="mb-4 border-y border-[var(--line)] bg-[var(--panel-strong)] p-4">
+          <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
             Game score (best of 3)
           </div>
-          <Row>
-            <ScoreField
-              label="Team A score"
-              value={result.scoreA}
-              onChange={(v) =>
-                setResult((r) => ({ ...r, scoreA: clampScore(v) }))
-              }
-            />
-            <ScoreField
-              label="Team B score"
-              value={result.scoreB}
-              onChange={(v) =>
-                setResult((r) => ({ ...r, scoreB: clampScore(v) }))
-              }
-            />
-          </Row>
+          <div className="mb-3 grid grid-cols-2 divide-x divide-ink-700">
+            <div className="pr-3">
+              <ScoreField
+                label="Team A score"
+                value={result.scoreA}
+                onChange={(v) =>
+                  setResult((r) => ({ ...r, scoreA: clampScore(v) }))
+                }
+              />
+            </div>
+            <div className="pl-3">
+              <ScoreField
+                label="Team B score"
+                value={result.scoreB}
+                onChange={(v) =>
+                  setResult((r) => ({ ...r, scoreB: clampScore(v) }))
+                }
+              />
+            </div>
+          </div>
         </div>
 
         {resultError && (
@@ -312,7 +325,9 @@ export default function AdminPanel({
           {savingResult ? "Saving…" : "Submit result"}
         </button>
       </form>
+      </section>
 
+      <section>
       <SectionLabel>
         {scheduledMatch
           ? `Edit scheduled match — Match ${scheduledMatch.num}`
@@ -320,7 +335,7 @@ export default function AdminPanel({
       </SectionLabel>
       <form
         onSubmit={handleSchedule}
-        className="rounded-md border border-ink-800 bg-ink-900 p-6"
+        className="border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_8px_18px_var(--shadow)]"
       >
         <Row>
           <Field label="Match #">
@@ -404,9 +419,12 @@ export default function AdminPanel({
               : "Schedule match"}
         </button>
       </form>
+      </section>
+      </div>
 
+      <section className="mt-8">
       <SectionLabel>Recent match activity</SectionLabel>
-      <div className="overflow-hidden rounded-md border border-ink-800 bg-ink-900">
+      <div className="overflow-hidden border border-[var(--line)] bg-[var(--panel)]">
         {auditError ? (
           <p className="px-4 py-3 text-xs text-ink-500">
             Audit history is unavailable until the integrity migration is run.
@@ -430,6 +448,7 @@ export default function AdminPanel({
           <p className="px-4 py-3 text-xs text-ink-500">No match changes yet.</p>
         )}
       </div>
+      </section>
     </div>
   );
 }

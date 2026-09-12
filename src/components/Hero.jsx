@@ -64,55 +64,48 @@ export default function Hero({
     { val: matches.length, label: "Matches" },
     { val: completed, label: "Completed" },
     { val: upcoming, label: "Upcoming" },
-    { val: `Week ${currentWeek}`, label: "Current week", accent: true },
   ];
 
-  if (isAdmin && onlineVisitors !== null) {
-    stats.push({ val: onlineVisitors, label: "Online now", accent: true });
-  }
-
   return (
-    <div className="border-b border-[var(--line)] bg-[var(--panel)] bg-grid-fade">
-      <div className="mx-auto max-w-6xl px-5 py-7">
-        <p className="font-mono text-[11px] font-semibold tracking-[0.2em] text-ember-500">
-          Season 2026
-        </p>
-        <h1 className="font-display text-3xl font-bold uppercase leading-none tracking-tight text-[var(--text)] sm:text-4xl">
-          BSIS MLBB Intramurals
-        </h1>
-        <p className="mt-2 flex items-center gap-2 text-xs text-[var(--text-muted)]">
-          <span className="inline-flex items-center rounded-full border border-ember-500/35 bg-ember-500/10 px-2 py-1 font-bold uppercase tracking-[0.14em] text-ember-400">
-            Week {currentWeek}
-          </span>
-          <span className="text-[var(--text-soft)]">
-            Round robin, single phase
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 font-medium ${SYNC_COLOR[syncStatus]}`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${SYNC_DOT[syncStatus]}`}
-            />
-            {SYNC_LABEL[syncStatus]}
-          </span>
-        </p>
-        <div className="mt-5 flex flex-wrap gap-x-7 gap-y-4 border-t border-[var(--line)] pt-5">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <div
-                className={`text-xl font-bold leading-none ${
-                  s.accent ? "text-ember-500" : "text-[var(--text)]"
-                }`}
-              >
-                {s.val}
-              </div>
-              <div className="mt-1.5 text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-                {s.label}
-              </div>
+    <section className="border-b border-[var(--line)] bg-[var(--panel)]">
+      <div className="mx-auto max-w-6xl px-5 py-5 sm:py-6">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              <span>BSIS Intramurals</span>
+              <span className="h-1 w-1 bg-ember-500" />
+              <span>2026</span>
             </div>
-          ))}
+            <h1 className="mt-2 text-xl font-semibold text-[var(--text)] sm:text-2xl">
+              Mobile Legends: Bang Bang
+            </h1>
+            <div className="mt-2 flex items-center gap-2 text-xs text-[var(--text-muted)]">
+              <span>Regular season</span>
+              <span aria-hidden="true">/</span>
+              <span>Week {currentWeek}</span>
+              <span className={`ml-1 inline-flex items-center gap-1.5 font-medium ${SYNC_COLOR[syncStatus]}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${SYNC_DOT[syncStatus]}`} />
+                {SYNC_LABEL[syncStatus]}
+              </span>
+              {isAdmin && onlineVisitors !== null && (
+                <span className="text-[var(--text-muted)]">{onlineVisitors} viewing</span>
+              )}
+            </div>
+          </div>
+          <dl className="grid grid-cols-2 border-y border-[var(--line)] sm:min-w-[320px] sm:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.label} className="px-3 py-2.5 odd:border-r odd:border-[var(--line)] [&:nth-child(-n+2)]:border-b [&:nth-child(-n+2)]:border-[var(--line)] sm:border-b-0 sm:odd:border-r-0 sm:border-l sm:border-[var(--line)] sm:first:border-l-0 sm:px-4">
+                <dt className="text-[9px] font-medium uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                  {s.label}
+                </dt>
+                <dd className={`mt-1 text-base font-semibold tabular-nums ${s.accent ? "text-ember-500" : "text-[var(--text)]"}`}>
+                  {s.val}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
 import { SectionLabel, EmptyState, SkeletonBlock } from "./shared";
+import { formatMatchDate } from "../lib/schedule";
 
 const FILTERS = [
   { id: "all", label: "All" },
@@ -103,17 +104,19 @@ export default function Schedule({
                 return (
                   <div
                     key={m.id}
-                    className="grid grid-cols-[24px_1fr_70px_70px] items-center gap-3 rounded-sm border border-ink-800 bg-ink-900 px-3.5 py-3 sm:grid-cols-[24px_1fr_80px_80px_70px]"
+                    className="grid grid-cols-[24px_1fr_70px_70px] items-center gap-3 rounded-sm border border-ink-800 bg-ink-900 px-3.5 py-3 sm:grid-cols-[24px_1fr_116px_70px_70px]"
                   >
                     <div className="text-[10px] font-bold text-ink-600">
                       {m.num}
                     </div>
-                    <div className="truncate text-xs font-semibold">
+                    <div className="min-w-0 text-xs font-semibold">
                       <b>{ta.abbr}</b> <span className="text-ink-600">vs</span>{" "}
                       <b>{tb.abbr}</b>
+                      {!done && <div className="mt-1 text-[9px] font-medium text-ink-500 sm:hidden">{formatMatchDate(m.date)} · {m.time || "Time TBD"}</div>}
                     </div>
-                    <div className="hidden text-center text-[11px] text-ink-500 sm:block">
-                      {m.time || ""}
+                    <div className="hidden text-center text-[10px] leading-4 text-ink-500 sm:block">
+                      <div>{formatMatchDate(m.date)}</div>
+                      <div>{m.time || "Time TBD"}</div>
                     </div>
                     <div
                       className={`text-center text-xs font-bold ${done ? "text-white" : "text-ink-700"}`}

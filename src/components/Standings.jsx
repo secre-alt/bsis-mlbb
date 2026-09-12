@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
 import { calcStandings } from "../lib/standings";
-import { getTournamentStartDate, getWeekNumber } from "../lib/schedule";
+import { formatMatchDate, getTournamentStartDate, getWeekNumber } from "../lib/schedule";
 import {
   TeamLogo,
   SectionLabel,
@@ -23,6 +23,7 @@ export default function Standings({
   onDeleteMatch,
 }) {
   const [showAllResults, setShowAllResults] = useState(false);
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const standingsRef = useRef(null);
 
@@ -89,8 +90,8 @@ export default function Standings({
       const aTime = parseMatchDate(a.date, a.time)?.getTime() ?? Number.MAX_SAFE_INTEGER;
       const bTime = parseMatchDate(b.date, b.time)?.getTime() ?? Number.MAX_SAFE_INTEGER;
       return aTime - bTime || Number(a.num) - Number(b.num);
-    })
-    .slice(0, 3);
+    });
+  const visibleUpcoming = showAllUpcoming ? upcoming : upcoming.slice(0, 2);
 
   return (
     <div
@@ -282,8 +283,8 @@ export default function Standings({
             </span>
           </div>
           <div className="space-y-2.5">
-            {upcoming.length ? (
-              upcoming.map((m) => (
+            {visibleUpcoming.length ? (
+              visibleUpcoming.map((m) => (
                 <UpcomingCard
                   key={m.id}
                   match={m}
@@ -299,6 +300,26 @@ export default function Standings({
               <EmptyState title="No upcoming matches" />
             )}
           </div>
+          {upcoming.length > 2 && (
+            <button
+              type="button"
+              onClick={() => setShowAllUpcoming((current) => !current)}
+              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 transition-all duration-200 hover:border-ember-500/50 hover:bg-ember-500/5 hover:text-ember-400"
+            >
+              <span>{showAllUpcoming ? "Show less" : "Show all"}</span>
+              <ChevronDown
+                size={12}
+                className={`transition-transform duration-200 ${showAllUpcoming ? "rotate-180" : ""}`}
+              />
+              <span
+                className={`hidden text-[10px] leading-none transition-transform duration-200 ${
+                  showAllUpcoming ? "rotate-180" : ""
+                }`}
+              >
+                â†“
+              </span>
+            </button>
+          )}
         </div>
 
         <div className="rounded-lg border border-[var(--line)] bg-[var(--panel)]/70 p-2.5">
@@ -330,8 +351,12 @@ export default function Standings({
               className="mb-5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-ink-500 transition-all duration-200 hover:border-ember-500/50 hover:bg-ember-500/5 hover:text-ember-400"
             >
               <span>{showAllResults ? "Show less" : "Show all"}</span>
+              <ChevronDown
+                size={12}
+                className={`transition-transform duration-200 ${showAllResults ? "rotate-180" : ""}`}
+              />
               <span
-                className={`text-[10px] leading-none transition-transform duration-200 ${
+                className={`hidden text-[10px] leading-none transition-transform duration-200 ${
                   showAllResults ? "rotate-180" : ""
                 }`}
               >
@@ -425,7 +450,7 @@ function UpcomingCard({
         <span>
           Match {m.num} · Week {week} · BO3
         </span>
-        <span className="text-ember-500">{m.time || ""}</span>
+        <span className="text-right text-ember-500"><span className="block text-[var(--text-muted)]">{formatMatchDate(m.date)}</span>{m.time || "Time TBD"}</span>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

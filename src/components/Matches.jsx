@@ -1,5 +1,5 @@
 import { TeamLogo, SectionLabel, EmptyState, SkeletonBlock } from "./shared";
-import { getTournamentStartDate, getWeekNumber } from "../lib/schedule";
+import { formatMatchDate, getTournamentStartDate, getWeekNumber } from "../lib/schedule";
 
 export default function Matches({ matches, getTeam, loading }) {
   if (loading) {
@@ -124,7 +124,7 @@ function MatchCard({ match: m, getTeam, week, isResult }) {
         <div
           className={`text-right text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-[var(--text-muted)]" : "text-ember-500"}`}
         >
-          {isResult ? `${aWin ? ta.abbr : tb.abbr} wins` : `${m.time || "TBD"}`}
+          {isResult ? `${aWin ? ta.abbr : tb.abbr} wins` : `${formatMatchDate(m.date)} · ${m.time || "Time TBD"}`}
         </div>
       </div>
     </div>

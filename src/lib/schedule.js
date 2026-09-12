@@ -14,6 +14,17 @@ export function getWeekNumber(dateString, tournamentStartDate) {
   return Math.max(1, Math.floor(diffDays / 7) + 1);
 }
 
+export function formatMatchDate(dateString) {
+  if (!dateString) return "Date TBD";
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return new Intl.DateTimeFormat("en-PH", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
 function getStartOfWeek(dateString) {
   const date = new Date(`${dateString}T00:00:00`);
   const day = date.getDay();

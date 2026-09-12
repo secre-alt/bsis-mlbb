@@ -47,119 +47,15 @@ body,
 
 body {
   color: var(--text);
-  background:
-    radial-gradient(
-      circle at 20% 18%,
-      rgba(255, 120, 56, 0.12),
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 70% 12%,
-      rgba(255, 100, 40, 0.08),
-      transparent 20%
-    ),
-    radial-gradient(
-      circle at 55% 85%,
-      rgba(255, 90, 31, 0.06),
-      transparent 28%
-    ),
-    var(--page-bg);
-  position: relative;
+  background: var(--page-bg);
   overflow-x: hidden;
   transition:
     background-color 220ms ease,
     color 220ms ease;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: -8% -4%;
-  background-image:
-    radial-gradient(
-      circle at 12% 22%,
-      rgba(255, 255, 255, 0.7) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 28% 42%,
-      rgba(255, 255, 255, 0.6) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 42% 18%,
-      rgba(255, 129, 62, 0.6) 0 1.2px,
-      transparent 2.2px
-    ),
-    radial-gradient(
-      circle at 64% 32%,
-      rgba(255, 255, 255, 0.5) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 80% 26%,
-      rgba(255, 255, 255, 0.5) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 76% 74%,
-      rgba(255, 111, 48, 0.45) 0 1.2px,
-      transparent 2.2px
-    ),
-    radial-gradient(
-      circle at 30% 78%,
-      rgba(255, 255, 255, 0.4) 0 1px,
-      transparent 2px
-    );
-  background-size: 240px 240px;
-  opacity: 0.8;
-  pointer-events: none;
-  z-index: 0;
-}
-
-:root[data-theme="light"] body::before {
-  background-image:
-    radial-gradient(
-      circle at 12% 22%,
-      rgba(15, 23, 42, 0.14) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 28% 42%,
-      rgba(15, 23, 42, 0.12) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 42% 18%,
-      rgba(255, 120, 56, 0.25) 0 1.2px,
-      transparent 2.2px
-    ),
-    radial-gradient(
-      circle at 64% 32%,
-      rgba(15, 23, 42, 0.1) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 80% 26%,
-      rgba(15, 23, 42, 0.12) 0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 76% 74%,
-      rgba(255, 120, 56, 0.2) 0 1.2px,
-      transparent 2.2px
-    ),
-    radial-gradient(
-      circle at 30% 78%,
-      rgba(15, 23, 42, 0.08) 0 1px,
-      transparent 2px
-    );
-  opacity: 0.75;
-}
-
 #root {
-  position: relative;
-  z-index: 1;
+  min-height: 100vh;
 }
 
 @layer base {
