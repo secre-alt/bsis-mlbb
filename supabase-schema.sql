@@ -47,6 +47,26 @@ create table if not exists matches (
 create unique index if not exists matches_num_key on matches(num);
 create unique index if not exists teams_abbr_key on teams(lower(btrim(abbr)));
 
+-- Playoffs are deliberately separate from regular-season matches so they
+-- cannot affect points, W/L, or regular-season seeding.
+create table if not exists playoff_matches (
+  id           bigint generated always as identity primary key,
+  slot         text not null unique check (slot in ('semifinal_1', 'semifinal_2', 'grand_final')),
+  round        int not null check (round in (1, 2)),
+  team_a       bigint references teams(id) on delete restrict,
+  team_b       bigint references teams(id) on delete restrict,
+  score_a      int,
+  score_b      int,
+  game_results jsonb not null default '[]'::jsonb,
+  status       text not null default 'upcoming' check (status in ('upcoming', 'completed')),
+  updated_at   timestamptz not null default now(),
+  check (team_a is null or team_b is null or team_a <> team_b),
+  check (
+    (status = 'upcoming' and score_a is null and score_b is null)
+    or (status = 'completed' and ((score_a = 2 and score_b in (0, 1)) or (score_b = 2 and score_a in (0, 1))))
+  )
+);
+
 -- Organizers/admins are listed here by their Supabase Auth user id.
 -- Being able to log in does NOT make someone an admin — only being listed
 -- in this table does. Add rows for organizer accounts you create in
@@ -124,12 +144,15 @@ alter table teams enable row level security;
 alter table matches enable row level security;
 alter table admins enable row level security;
 alter table match_audit enable row level security;
+alter table playoff_matches enable row level security;
 
 -- Standings/schedule/results are public — anyone (including logged-out
 -- visitors using only the anon key) can read them.
 create policy "public can read teams" on teams
   for select using (true);
 create policy "public can read matches" on matches
+  for select using (true);
+create policy "public can read playoff matches" on playoff_matches
   for select using (true);
 
 -- Only rows in `admins` can write. Regular authenticated accounts that
@@ -147,6 +170,10 @@ create policy "admins can update matches" on matches
   for update using (is_admin());
 create policy "admins can delete matches" on matches
   for delete using (is_admin());
+create policy "admins can insert playoff matches" on playoff_matches
+  for insert with check (is_admin());
+create policy "admins can update playoff matches" on playoff_matches
+  for update using (is_admin());
 
 -- Nobody needs to read the admins table from the client.
 create policy "no client access to admins" on admins
@@ -174,3 +201,4 @@ create policy "admins can delete team logos" on storage.objects
 -- ── Realtime ─────────────────────────────────────────────────────────────
 alter publication supabase_realtime add table teams;
 alter publication supabase_realtime add table matches;
+alter publication supabase_realtime add table playoff_matches;

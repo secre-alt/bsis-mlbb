@@ -51,6 +51,40 @@ create unique index if not exists matches_num_key on public.matches (num);
 create unique index if not exists teams_abbr_key
   on public.teams (lower(btrim(abbr)));
 
+-- Separate playoff rows never contribute to regular-season standings.
+create table if not exists public.playoff_matches (
+  id bigint generated always as identity primary key,
+  slot text not null unique check (slot in ('semifinal_1', 'semifinal_2', 'grand_final')),
+  round int not null check (round in (1, 2)),
+  team_a bigint references public.teams(id) on delete restrict,
+  team_b bigint references public.teams(id) on delete restrict,
+  score_a int,
+  score_b int,
+  game_results jsonb not null default '[]'::jsonb,
+  status text not null default 'upcoming' check (status in ('upcoming', 'completed')),
+  updated_at timestamptz not null default now(),
+  check (team_a is null or team_b is null or team_a <> team_b),
+  check ((status = 'upcoming' and score_a is null and score_b is null) or (status = 'completed' and ((score_a = 2 and score_b in (0, 1)) or (score_b = 2 and score_a in (0, 1)))))
+);
+
+alter table public.playoff_matches enable row level security;
+drop policy if exists "public can read playoff matches" on public.playoff_matches;
+create policy "public can read playoff matches" on public.playoff_matches for select using (true);
+drop policy if exists "admins can insert playoff matches" on public.playoff_matches;
+create policy "admins can insert playoff matches" on public.playoff_matches for insert with check (public.is_admin());
+drop policy if exists "admins can update playoff matches" on public.playoff_matches;
+create policy "admins can update playoff matches" on public.playoff_matches for update using (public.is_admin());
+
+create or replace function public.set_playoff_match_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+drop trigger if exists set_playoff_match_updated_at on public.playoff_matches;
+create trigger set_playoff_match_updated_at before update on public.playoff_matches for each row execute function public.set_playoff_match_updated_at();
+
 -- Preserve historical standings by preventing a team with matches from being
 -- deleted directly in SQL (the application also enforces this rule).
 alter table public.matches drop constraint if exists matches_team_a_fkey;
@@ -126,3 +160,10 @@ drop trigger if exists audit_match_change on public.matches;
 create trigger audit_match_change
   after insert or update or delete on public.matches
   for each row execute function public.audit_match_change();
+
+do $$
+begin
+  alter publication supabase_realtime add table public.playoff_matches;
+exception when duplicate_object then null;
+end;
+$$;

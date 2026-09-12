@@ -14,6 +14,7 @@ const PUBLIC_TABS = [
   { id: "standings", label: "Standings" },
   { id: "matches", label: "Matches" },
   { id: "schedule", label: "Schedule" },
+  { id: "playoffs", label: "Playoffs" },
 ];
 const ADMIN_TABS = [
   { id: "teams", label: "Teams" },

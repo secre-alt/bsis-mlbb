@@ -18,6 +18,7 @@ import Standings from "./components/Standings";
 const LoginModal = lazy(() => import("./components/LoginModal"));
 const Matches = lazy(() => import("./components/Matches"));
 const Schedule = lazy(() => import("./components/Schedule"));
+const Playoffs = lazy(() => import("./components/Playoffs"));
 const Teams = lazy(() => import("./components/Teams"));
 const AdminPanel = lazy(() => import("./components/AdminPanel"));
 
@@ -39,6 +40,22 @@ function AppShell() {
   const onlineVisitors = useVisitorPresence();
   const showToast = useToast();
   const data = useTournament();
+
+  // Publish the seeded bracket as soon as an organizer completes the 15th
+  // regular-season result; the unique playoff slot makes this safe in tabs.
+  useEffect(() => {
+    if (!isAdmin || data.matches.filter((match) => match.status === "completed").length < 15 || data.playoffMatches.some((match) => match.slot === "semifinal_1")) return;
+    data.initializePlayoffs();
+  }, [isAdmin, data.matches, data.playoffMatches, data.initializePlayoffs]);
+
+  useEffect(() => {
+    const semifinalsComplete = ["semifinal_1", "semifinal_2"].every((slot) =>
+      data.playoffMatches.some((match) => match.slot === slot && match.status === "completed"),
+    );
+    if (isAdmin && semifinalsComplete && !data.playoffMatches.some((match) => match.slot === "grand_final")) {
+      data.createGrandFinal();
+    }
+  }, [isAdmin, data.playoffMatches, data.createGrandFinal]);
 
   useEffect(() => {
     const onPwaUpdateReady = () => {
@@ -211,6 +228,8 @@ function AppShell() {
         onDeleteMatch={deleteScheduledMatch}
       />
     );
+  } else if (page === "playoffs") {
+    content = <Playoffs {...data} isAdmin={isAdmin} />;
   } else if (page === "teams") {
     content = isAdmin ? (
       <Teams {...data} />

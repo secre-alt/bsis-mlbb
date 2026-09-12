@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { initialSemifinals, isValidBo3, REGULAR_SEASON_MATCH_COUNT } from "../lib/playoffs";
+import { calcStandings } from "../lib/standings";
 
 const STORAGE_KEY = "bsis-mlbb-cache-v1";
 
@@ -28,6 +30,20 @@ function normalizeMatch(m) {
     updatedAt: m.updated_at ?? null,
   };
 }
+function normalizePlayoffMatch(m) {
+  return {
+    id: m.id,
+    slot: m.slot,
+    round: m.round,
+    teamA: m.team_a,
+    teamB: m.team_b,
+    scoreA: m.score_a,
+    scoreB: m.score_b,
+    gameResults: Array.isArray(m.game_results) ? m.game_results : [],
+    status: m.status,
+    updatedAt: m.updated_at ?? null,
+  };
+}
 
 function offlineWriteError() {
   return typeof navigator !== "undefined" && !navigator.onLine
@@ -36,6 +52,9 @@ function offlineWriteError() {
 }
 function sameMatchNumber(value, number) {
   return Number(value) === Number(number);
+}
+function isSameFixture(match, teamA, teamB) {
+  return (match.teamA === teamA && match.teamB === teamB) || (match.teamA === teamB && match.teamB === teamA);
 }
 function readCachedTournament() {
   try {
@@ -72,6 +91,7 @@ function writeCachedTournament(teams, matches) {
 export function useTournament() {
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [playoffMatches, setPlayoffMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState(
     typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle",
@@ -92,18 +112,20 @@ export function useTournament() {
 
     setSyncStatus("syncing");
     try {
-      const [{ data: teamsData, error: te }, { data: matchesData, error: me }] =
+      const [{ data: teamsData, error: te }, { data: matchesData, error: me }, { data: playoffData, error: pe }] =
         await Promise.all([
           supabase.from("teams").select("*").order("id"),
           supabase.from("matches").select("*").order("num"),
+          supabase.from("playoff_matches").select("*").order("round"),
         ]);
-      if (te || me) throw te || me;
+      if (te || me || pe) throw te || me || pe;
 
       const normalizedTeams = teamsData.map(normalizeTeam);
       const normalizedMatches = matchesData.map(normalizeMatch);
 
       setTeams(normalizedTeams);
       setMatches(normalizedMatches);
+      setPlayoffMatches(playoffData.map(normalizePlayoffMatch));
       writeCachedTournament(normalizedTeams, normalizedMatches);
       setSyncStatus("ok");
     } catch (e) {
@@ -169,6 +191,11 @@ export function useTournament() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "teams" },
+        loadAll,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "playoff_matches" },
         loadAll,
       )
       .on(
@@ -283,8 +310,14 @@ export function useTournament() {
         };
       const existing = id ? matches.find((m) => m.id === id) : null;
       if (id && !existing) return { error: "That match no longer exists. Refresh and try again." };
+      if (!id && matches.length >= REGULAR_SEASON_MATCH_COUNT) {
+        return { error: "The 15-match regular season is already full. Record playoff results from the Playoffs tab." };
+      }
       if (matches.some((m) => sameMatchNumber(m.num, num) && m.id !== id)) {
         return { error: `Match ${num} already exists. Use its edit action instead.` };
+      }
+      if (matches.some((m) => isSameFixture(m, teamA, teamB) && m.id !== id)) {
+        return { error: "This regular-season matchup is already scheduled." };
       }
       const payload = {
         num,
@@ -326,8 +359,14 @@ export function useTournament() {
         return { error: "Choose two existing teams." };
       }
       if (teamA === teamB) return { error: "Teams must be different." };
+      if (!id && matches.length >= REGULAR_SEASON_MATCH_COUNT) {
+        return { error: "The 15-match regular season is already full." };
+      }
       if (matches.some((m) => sameMatchNumber(m.num, num) && m.id !== id)) {
         return { error: `Match ${num} already exists.` };
+      }
+      if (matches.some((m) => isSameFixture(m, teamA, teamB) && m.id !== id)) {
+        return { error: "This regular-season matchup is already scheduled." };
       }
       const payload = {
         num,
@@ -379,9 +418,62 @@ export function useTournament() {
     return { data: data ?? [], error: error?.message };
   }, []);
 
+  const initializePlayoffs = useCallback(async () => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    if (matches.filter((match) => match.status === "completed").length < REGULAR_SEASON_MATCH_COUNT) {
+      return { error: "Playoffs unlock after all 15 regular-season matches are complete." };
+    }
+    if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) return { error: null };
+    const seeds = initialSemifinals(calcStandings(teams, matches));
+    if (seeds.length !== 2) return { error: "At least four ranked teams are required." };
+    const { error } = await supabase.from("playoff_matches").upsert(
+      seeds.map((match) => ({ slot: match.slot, round: match.round, team_a: match.teamA, team_b: match.teamB, status: "upcoming" })),
+      { onConflict: "slot", ignoreDuplicates: true },
+    );
+    return { error: error?.message };
+  }, [matches, playoffMatches, teams]);
+
+  const submitPlayoffResult = useCallback(async ({ slot, gameResults, updatedAt }) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    const match = playoffMatches.find((item) => item.slot === slot);
+    if (!match?.teamA || !match?.teamB) return { error: "This bracket match is not ready yet." };
+    if (slot === "grand_final" && !["semifinal_1", "semifinal_2"].every((semiSlot) => playoffMatches.some((item) => item.slot === semiSlot && item.status === "completed"))) {
+      return { error: "Complete both semifinals first." };
+    }
+    const games = Array.from({ length: 3 }, (_, index) => gameResults[index] ?? null);
+    if (games.some((winner) => winner && winner !== "A" && winner !== "B")) return { error: "Each game must be won by Team A or Team B." };
+    const scoreA = games.filter((winner) => winner === "A").length;
+    const scoreB = games.filter((winner) => winner === "B").length;
+    const decisiveGame = games.findIndex((_, index) => games.slice(0, index + 1).filter((winner) => winner === "A").length === 2 || games.slice(0, index + 1).filter((winner) => winner === "B").length === 2);
+    if (decisiveGame >= 0 && games.slice(decisiveGame + 1).some(Boolean)) {
+      return { error: "Do not record games after a team reaches two wins." };
+    }
+    if (!isValidBo3(scoreA, scoreB)) return { error: "A BO3 result must finish 2-0 or 2-1." };
+    const payload = { score_a: scoreA, score_b: scoreB, game_results: games, status: "completed" };
+    let request = supabase.from("playoff_matches").update(payload).eq("slot", slot);
+    if (updatedAt) request = request.eq("updated_at", updatedAt);
+    const { data, error } = await request.select("id");
+    if (!error && updatedAt && !data?.length) return { error: "This result was changed by another organizer. Refresh and try again." };
+    return { error: error?.message };
+  }, [playoffMatches]);
+
+  const createGrandFinal = useCallback(async () => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    if (playoffMatches.some((match) => match.slot === "grand_final")) return { error: null };
+    const semis = ["semifinal_1", "semifinal_2"].map((slot) => playoffMatches.find((match) => match.slot === slot));
+    if (semis.some((match) => match?.status !== "completed")) return { error: "Complete both semifinals first." };
+    const [teamA, teamB] = semis.map((match) => match.scoreA > match.scoreB ? match.teamA : match.teamB);
+    const { error } = await supabase.from("playoff_matches").upsert({ slot: "grand_final", round: 2, team_a: teamA, team_b: teamB, status: "upcoming" }, { onConflict: "slot", ignoreDuplicates: true });
+    return { error: error?.message };
+  }, [playoffMatches]);
+
   return {
     teams,
     matches,
+    playoffMatches,
     loading,
     syncStatus,
     getTeam,
@@ -393,5 +485,8 @@ export function useTournament() {
     scheduleMatch,
     deleteMatch,
     getMatchAudit,
+    initializePlayoffs,
+    submitPlayoffResult,
+    createGrandFinal,
   };
 }

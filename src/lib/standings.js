@@ -15,7 +15,7 @@ function matchSortTime(match) {
 export function calcStandings(teams, matches) {
   const standingsById = {};
   teams.forEach((team) => {
-    standingsById[team.id] = { id: team.id, mp: 0, w: 0, l: 0, gw: 0, gl: 0, pts: 0, form: [] };
+    standingsById[team.id] = { id: team.id, mp: 0, w: 0, l: 0, gw: 0, gl: 0, pts: 0, form: [], h2h: {} };
   });
 
   // Ignore corrupt cached or legacy rows. Database constraints reject invalid
@@ -41,12 +41,16 @@ export function calcStandings(teams, matches) {
         teamB.l += 1;
         teamA.form.push("W");
         teamB.form.push("L");
+        teamA.h2h[match.teamB] = "W";
+        teamB.h2h[match.teamA] = "L";
       } else {
         teamB.w += 1;
         teamB.pts += 1;
         teamA.l += 1;
         teamB.form.push("W");
         teamA.form.push("L");
+        teamA.h2h[match.teamB] = "L";
+        teamB.h2h[match.teamA] = "W";
       }
     });
 
@@ -56,6 +60,7 @@ export function calcStandings(teams, matches) {
       form: team.form.slice(-5),
       diff: team.gw - team.gl,
       wr: team.mp > 0 ? Math.round((team.w / team.mp) * 100) : 0,
+      gwr: team.gw + team.gl > 0 ? Math.round((team.gw / (team.gw + team.gl)) * 100) : 0,
     }))
     .sort((a, b) => standingComparison(a, b) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
 
