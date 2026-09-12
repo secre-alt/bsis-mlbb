@@ -293,6 +293,9 @@ export function useTournament() {
     async ({ id, updatedAt, completedAt, num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
       const offline = offlineWriteError();
       if (offline) return offline;
+      if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) {
+        return { error: "Regular-season results are locked after playoff seeding." };
+      }
       if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
         return { error: "Match number and round must be positive whole numbers." };
       }
@@ -345,13 +348,16 @@ export function useTournament() {
       }
       return { error: error?.message };
     },
-    [matches, teams],
+    [matches, playoffMatches, teams],
   );
 
   const scheduleMatch = useCallback(
     async ({ id, updatedAt, num, round, date, time, teamA, teamB }) => {
       const offline = offlineWriteError();
       if (offline) return offline;
+      if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) {
+        return { error: "Regular-season scheduling is locked after playoff seeding." };
+      }
       if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
         return { error: "Match number and round must be positive whole numbers." };
       }
@@ -394,12 +400,15 @@ export function useTournament() {
       }
       return { error: error?.message };
     },
-    [matches, teams],
+    [matches, playoffMatches, teams],
   );
 
   const deleteMatch = useCallback(async (id, updatedAt) => {
     const offline = offlineWriteError();
     if (offline) return offline;
+    if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) {
+      return { error: "Regular-season matches are locked after playoff seeding." };
+    }
     let request = supabase.from("matches").delete().eq("id", id);
     if (updatedAt) request = request.eq("updated_at", updatedAt);
     const { data, error } = await request.select("id");
@@ -407,7 +416,7 @@ export function useTournament() {
       return { error: "This match was changed by another organizer. Refresh and try again." };
     }
     return { error: error?.message };
-  }, []);
+  }, [playoffMatches]);
 
   const getMatchAudit = useCallback(async () => {
     const { data, error } = await supabase
@@ -421,7 +430,7 @@ export function useTournament() {
   const initializePlayoffs = useCallback(async () => {
     const offline = offlineWriteError();
     if (offline) return offline;
-    if (matches.filter((match) => match.status === "completed").length < REGULAR_SEASON_MATCH_COUNT) {
+    if (matches.filter((match) => match.status === "completed" && isValidBo3(Number(match.scoreA), Number(match.scoreB))).length < REGULAR_SEASON_MATCH_COUNT) {
       return { error: "Playoffs unlock after all 15 regular-season matches are complete." };
     }
     if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) return { error: null };
@@ -450,13 +459,17 @@ export function useTournament() {
     if (decisiveGame >= 0 && games.slice(decisiveGame + 1).some(Boolean)) {
       return { error: "Do not record games after a team reaches two wins." };
     }
-    if (!isValidBo3(scoreA, scoreB)) return { error: "A BO3 result must finish 2-0 or 2-1." };
-    const payload = { score_a: scoreA, score_b: scoreB, game_results: games, status: "completed" };
+    const completed = isValidBo3(scoreA, scoreB);
+    const hasStarted = games.some(Boolean);
+    if (!completed && hasStarted && (scoreA > 1 || scoreB > 1)) return { error: "A live BO3 score cannot exceed 1-1." };
+    const payload = completed
+      ? { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: "completed" }
+      : { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: hasStarted ? "live" : "upcoming" };
     let request = supabase.from("playoff_matches").update(payload).eq("slot", slot);
     if (updatedAt) request = request.eq("updated_at", updatedAt);
-    const { data, error } = await request.select("id");
+    const { data, error } = await request.select("updated_at");
     if (!error && updatedAt && !data?.length) return { error: "This result was changed by another organizer. Refresh and try again." };
-    return { error: error?.message };
+    return { error: error?.message, updatedAt: data?.[0]?.updated_at };
   }, [playoffMatches]);
 
   const createGrandFinal = useCallback(async () => {

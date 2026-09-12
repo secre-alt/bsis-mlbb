@@ -85,6 +85,96 @@ $$;
 drop trigger if exists set_playoff_match_updated_at on public.playoff_matches;
 create trigger set_playoff_match_updated_at before update on public.playoff_matches for each row execute function public.set_playoff_match_updated_at();
 
+-- Enforce bracket progression and BO3 game records even for direct API calls.
+create or replace function public.enforce_playoff_match_integrity()
+returns trigger
+language plpgsql
+as $$
+declare
+  semi_one public.playoff_matches;
+  semi_two public.playoff_matches;
+  expected_a bigint;
+  expected_b bigint;
+  game jsonb;
+  wins_a int := 0;
+  wins_b int := 0;
+  game_count int;
+begin
+  if tg_op = 'UPDATE' and old.slot in ('semifinal_1', 'semifinal_2') and old.status = 'completed' then
+    raise exception 'Completed semifinal results cannot be changed';
+  end if;
+  if new.slot in ('semifinal_1', 'semifinal_2') and exists (select 1 from public.playoff_matches where slot = 'grand_final') then
+    raise exception 'Semifinal teams cannot change after the Grand Final is created';
+  end if;
+  if new.team_a is null or new.team_b is null then
+    raise exception 'Playoff matches require two teams';
+  end if;
+  if new.slot = 'grand_final' then
+    select * into semi_one from public.playoff_matches where slot = 'semifinal_1';
+    select * into semi_two from public.playoff_matches where slot = 'semifinal_2';
+    if semi_one.id is null or semi_two.id is null or semi_one.status <> 'completed' or semi_two.status <> 'completed' then
+      raise exception 'Both semifinals must be completed before the Grand Final';
+    end if;
+    expected_a := case when semi_one.score_a > semi_one.score_b then semi_one.team_a else semi_one.team_b end;
+    expected_b := case when semi_two.score_a > semi_two.score_b then semi_two.team_a else semi_two.team_b end;
+    if new.team_a <> expected_a or new.team_b <> expected_b then
+      raise exception 'Grand Final teams must be the two semifinal winners';
+    end if;
+  end if;
+  if new.status = 'completed' then
+    if jsonb_typeof(new.game_results) <> 'array' then
+      raise exception 'game_results must be a JSON array';
+    end if;
+    game_count := jsonb_array_length(new.game_results);
+    if game_count < 2 or game_count > 3 then
+      raise exception 'A BO3 requires two or three recorded games';
+    end if;
+    for game in select value from jsonb_array_elements(new.game_results) loop
+      if game = '"A"'::jsonb then wins_a := wins_a + 1;
+      elsif game = '"B"'::jsonb then wins_b := wins_b + 1;
+      else raise exception 'Each recorded game winner must be A or B';
+      end if;
+      if wins_a = 2 or wins_b = 2 then
+        if wins_a + wins_b < game_count then
+          raise exception 'No games may be recorded after a team reaches two wins';
+        end if;
+      end if;
+    end loop;
+    if wins_a <> new.score_a or wins_b <> new.score_b then
+      raise exception 'Game winners must match the submitted BO3 score';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists enforce_playoff_match_integrity on public.playoff_matches;
+create trigger enforce_playoff_match_integrity
+  before insert or update on public.playoff_matches
+  for each row execute function public.enforce_playoff_match_integrity();
+
+-- A six-team single round robin has exactly 15 unique fixtures. These guards
+-- prevent client/API writes from quietly creating extra or duplicate fixtures.
+create unique index if not exists matches_unique_fixture
+  on public.matches (least(team_a, team_b), greatest(team_a, team_b));
+create or replace function public.enforce_regular_season_lock()
+returns trigger
+language plpgsql
+as $$
+begin
+  if exists (select 1 from public.playoff_matches where slot in ('semifinal_1', 'semifinal_2')) then
+    raise exception 'Regular season is locked after playoff seeding';
+  end if;
+  if tg_op = 'INSERT' and (select count(*) from public.matches) >= 15 then
+    raise exception 'A six-team single round robin cannot exceed 15 matches';
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+drop trigger if exists enforce_regular_season_lock on public.matches;
+create trigger enforce_regular_season_lock
+  before insert or update or delete on public.matches
+  for each row execute function public.enforce_regular_season_lock();
+
 -- Preserve historical standings by preventing a team with matches from being
 -- deleted directly in SQL (the application also enforces this rule).
 alter table public.matches drop constraint if exists matches_team_a_fkey;
