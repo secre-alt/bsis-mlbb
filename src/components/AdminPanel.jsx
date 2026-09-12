@@ -9,11 +9,20 @@ const nextMatchNumber = (matches) =>
 const nextRoundNumber = (matches) =>
   Math.max(0, ...matches.map((match) => Number(match.round) || 0)) + 1;
 
+function toTimeInput(value) {
+  if (/^\d{2}:\d{2}$/.test(value || "")) return value;
+  const match = (value || "").match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return "19:00";
+  const hour = (Number(match[1]) % 12) + (match[3].toUpperCase() === "PM" ? 12 : 0);
+  return `${String(hour).padStart(2, "0")}:${match[2]}`;
+}
+
 export default function AdminPanel({
   teams,
   matches,
   submitMatchResult,
   scheduleMatch,
+  getMatchAudit,
   resultMatch,
   scheduledMatch,
   onDone,
@@ -23,7 +32,7 @@ export default function AdminPanel({
     num: nextMatchNumber(matches),
     round: nextRoundNumber(matches),
     date: todayISO(),
-    time: "7:00 PM",
+    time: "19:00",
     teamA: teams[0]?.id,
     teamB: teams[1]?.id,
     scoreA: 2,
@@ -36,11 +45,13 @@ export default function AdminPanel({
     num: nextMatchNumber(matches),
     round: nextRoundNumber(matches),
     date: todayISO(),
-    time: "7:00 PM",
+    time: "19:00",
     teamA: teams[0]?.id,
     teamB: teams[1]?.id,
   }));
   const [savingSched, setSavingSched] = useState(false);
+  const [auditEntries, setAuditEntries] = useState([]);
+  const [auditError, setAuditError] = useState("");
 
   useEffect(() => {
     if (!resultMatch) return;
@@ -48,10 +59,11 @@ export default function AdminPanel({
     setResult({
       id: resultMatch.id,
       updatedAt: resultMatch.updatedAt,
+      completedAt: resultMatch.completedAt,
       num: resultMatch.num,
       round: resultMatch.round,
       date: resultMatch.date || todayISO(),
-      time: resultMatch.time || "7:00 PM",
+      time: toTimeInput(resultMatch.time),
       teamA: resultMatch.teamA,
       teamB: resultMatch.teamB,
       scoreA: resultMatch.scoreA ?? 2,
@@ -69,11 +81,25 @@ export default function AdminPanel({
       num: scheduledMatch.num,
       round: scheduledMatch.round,
       date: scheduledMatch.date || todayISO(),
-      time: scheduledMatch.time || "7:00 PM",
+      time: toTimeInput(scheduledMatch.time),
       teamA: scheduledMatch.teamA,
       teamB: scheduledMatch.teamB,
     });
   }, [scheduledMatch]);
+
+  useEffect(() => {
+    let active = true;
+    const loadAudit = async () => {
+      const { data, error } = await getMatchAudit();
+      if (!active) return;
+      if (error) setAuditError(error);
+      else setAuditEntries(data);
+    };
+    loadAudit();
+    return () => {
+      active = false;
+    };
+  }, [getMatchAudit]);
 
   const teamOptions = useMemo(
     () =>
@@ -120,7 +146,7 @@ export default function AdminPanel({
       num: nextNum,
       round: nextRound,
       date: todayISO(),
-      time: "7:00 PM",
+      time: "19:00",
       teamA: teams[0]?.id,
       teamB: teams[1]?.id,
       scoreA: 2,
@@ -161,7 +187,7 @@ export default function AdminPanel({
       num: nextNum,
       round: nextRound,
       date: todayISO(),
-      time: "7:00 PM",
+      time: "19:00",
     }));
 
     showToast(scheduledMatch ? "Scheduled match updated" : "Match scheduled", "success");
@@ -214,6 +240,7 @@ export default function AdminPanel({
           </Field>
           <Field label="Time">
             <input
+              type="time"
               className="input"
               value={result.time}
               onChange={(e) =>
@@ -330,6 +357,7 @@ export default function AdminPanel({
           </Field>
           <Field label="Time">
             <input
+              type="time"
               className="input"
               value={sched.time}
               onChange={(e) =>
@@ -376,6 +404,32 @@ export default function AdminPanel({
               : "Schedule match"}
         </button>
       </form>
+
+      <SectionLabel>Recent match activity</SectionLabel>
+      <div className="overflow-hidden rounded-md border border-ink-800 bg-ink-900">
+        {auditError ? (
+          <p className="px-4 py-3 text-xs text-ink-500">
+            Audit history is unavailable until the integrity migration is run.
+          </p>
+        ) : auditEntries.length ? (
+          auditEntries.map((entry) => {
+            const match = entry.new_row || entry.old_row || {};
+            return (
+              <div key={entry.id} className="flex items-center justify-between gap-3 border-b border-ink-800 px-4 py-3 last:border-b-0">
+                <div className="text-xs text-ink-300">
+                  <span className="font-bold uppercase text-ember-400">{entry.action}</span>
+                  {" · "}Match {match.num ?? entry.match_id}
+                </div>
+                <time className="text-[10px] text-ink-600">
+                  {new Date(entry.created_at).toLocaleString("en-PH")}
+                </time>
+              </div>
+            );
+          })
+        ) : (
+          <p className="px-4 py-3 text-xs text-ink-500">No match changes yet.</p>
+        )}
+      </div>
     </div>
   );
 }

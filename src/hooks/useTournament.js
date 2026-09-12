@@ -24,6 +24,7 @@ function normalizeMatch(m) {
     date: m.match_date,
     time: m.match_time,
     status: m.status,
+    completedAt: m.completed_at ?? null,
     updatedAt: m.updated_at ?? null,
   };
 }
@@ -32,6 +33,9 @@ function offlineWriteError() {
   return typeof navigator !== "undefined" && !navigator.onLine
     ? { error: "You are offline. Reconnect before changing tournament data." }
     : null;
+}
+function sameMatchNumber(value, number) {
+  return Number(value) === Number(number);
 }
 function readCachedTournament() {
   try {
@@ -259,11 +263,14 @@ export function useTournament() {
   }, []);
 
   const submitMatchResult = useCallback(
-    async ({ id, updatedAt, num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
+    async ({ id, updatedAt, completedAt, num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
       const offline = offlineWriteError();
       if (offline) return offline;
       if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
         return { error: "Match number and round must be positive whole numbers." };
+      }
+      if (!teams.some((team) => team.id === teamA) || !teams.some((team) => team.id === teamB)) {
+        return { error: "Choose two existing teams." };
       }
       if (teamA === teamB) return { error: "Teams cannot be the same." };
       if (scoreA === scoreB) return { error: "Score cannot be tied." };
@@ -276,7 +283,7 @@ export function useTournament() {
         };
       const existing = id ? matches.find((m) => m.id === id) : null;
       if (id && !existing) return { error: "That match no longer exists. Refresh and try again." };
-      if (matches.some((m) => m.num === num && m.id !== id)) {
+      if (matches.some((m) => sameMatchNumber(m.num, num) && m.id !== id)) {
         return { error: `Match ${num} already exists. Use its edit action instead.` };
       }
       const payload = {
@@ -289,6 +296,7 @@ export function useTournament() {
         match_date: date,
         match_time: time,
         status: "completed",
+        completed_at: completedAt || new Date().toISOString(),
       };
       let error;
       if (existing) {
@@ -304,7 +312,7 @@ export function useTournament() {
       }
       return { error: error?.message };
     },
-    [matches],
+    [matches, teams],
   );
 
   const scheduleMatch = useCallback(
@@ -314,8 +322,11 @@ export function useTournament() {
       if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
         return { error: "Match number and round must be positive whole numbers." };
       }
+      if (!teams.some((team) => team.id === teamA) || !teams.some((team) => team.id === teamB)) {
+        return { error: "Choose two existing teams." };
+      }
       if (teamA === teamB) return { error: "Teams must be different." };
-      if (matches.some((m) => m.num === num && m.id !== id)) {
+      if (matches.some((m) => sameMatchNumber(m.num, num) && m.id !== id)) {
         return { error: `Match ${num} already exists.` };
       }
       const payload = {
@@ -328,6 +339,7 @@ export function useTournament() {
         match_date: date,
         match_time: time,
         status: "upcoming",
+        completed_at: null,
       };
       let error;
       if (id) {
@@ -343,7 +355,7 @@ export function useTournament() {
       }
       return { error: error?.message };
     },
-    [matches],
+    [matches, teams],
   );
 
   const deleteMatch = useCallback(async (id, updatedAt) => {
@@ -356,6 +368,15 @@ export function useTournament() {
       return { error: "This match was changed by another organizer. Refresh and try again." };
     }
     return { error: error?.message };
+  }, []);
+
+  const getMatchAudit = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("match_audit")
+      .select("id, match_id, action, created_at, old_row, new_row")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return { data: data ?? [], error: error?.message };
   }, []);
 
   return {
@@ -371,5 +392,6 @@ export function useTournament() {
     submitMatchResult,
     scheduleMatch,
     deleteMatch,
+    getMatchAudit,
   };
 }

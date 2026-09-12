@@ -16,9 +16,32 @@ alter table public.matches
     )
   ) not valid;
 
-alter table public.matches
-  add constraint matches_num_positive check (num > 0) not valid,
-  add constraint matches_round_positive check (round > 0) not valid;
+-- PostgreSQL has no `add constraint if not exists`; guard these so the
+-- migration can be safely rerun after a partial previous execution.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.matches'::regclass
+      and conname = 'matches_num_positive'
+  ) then
+    alter table public.matches
+      add constraint matches_num_positive check (num > 0) not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.matches'::regclass
+      and conname = 'matches_round_positive'
+  ) then
+    alter table public.matches
+      add constraint matches_round_positive check (round > 0) not valid;
+  end if;
+end;
+$$;
+
+-- Race-safe duplicate protection when multiple organizers save at once.
+create unique index if not exists matches_num_key on public.matches (num);
 
 -- Run the following after correcting any legacy rows that do not comply:
 -- alter table public.matches validate constraint valid_scores;
@@ -43,6 +66,13 @@ alter table public.matches
 alter table public.matches
   add column if not exists updated_at timestamptz not null default now();
 
+alter table public.matches
+  add column if not exists completed_at timestamptz;
+
+update public.matches
+  set completed_at = coalesce(updated_at, created_at)
+  where status = 'completed' and completed_at is null;
+
 create or replace function public.set_match_updated_at()
 returns trigger
 language plpgsql
@@ -50,6 +80,7 @@ as $$
 begin
   new.updated_at = now();
   return new;
+end;
 $$;
 
 drop trigger if exists set_match_updated_at on public.matches;

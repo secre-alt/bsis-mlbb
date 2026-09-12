@@ -1,49 +1,72 @@
+const standingComparison = (a, b) =>
+  b.pts - a.pts || b.w - a.w || b.diff - a.diff || b.gw - a.gw;
+
+function completedMatchIsScorable(match) {
+  const scoreA = Number(match.scoreA);
+  const scoreB = Number(match.scoreB);
+  return Number.isInteger(scoreA) && Number.isInteger(scoreB) && scoreA >= 0 && scoreB >= 0 && scoreA !== scoreB;
+}
+
+function matchSortTime(match) {
+  const value = new Date(match.completedAt || match.date || 0).getTime();
+  return Number.isNaN(value) ? 0 : value;
+}
+
 export function calcStandings(teams, matches) {
-  const s = {};
-  teams.forEach((t) => {
-    s[t.id] = { id: t.id, mp: 0, w: 0, l: 0, gw: 0, gl: 0, pts: 0, form: [] };
+  const standingsById = {};
+  teams.forEach((team) => {
+    standingsById[team.id] = { id: team.id, mp: 0, w: 0, l: 0, gw: 0, gl: 0, pts: 0, form: [] };
   });
 
+  // Ignore corrupt cached or legacy rows. Database constraints reject invalid
+  // future writes, but old rows must never award a default win to Team B.
   matches
-    .filter((m) => m.status === 'completed')
-    .forEach((m) => {
-      const a = s[m.teamA];
-      const b = s[m.teamB];
-      if (!a || !b) return;
-      a.mp++;
-      b.mp++;
-      a.gw += m.scoreA;
-      a.gl += m.scoreB;
-      b.gw += m.scoreB;
-      b.gl += m.scoreA;
-      if (m.scoreA > m.scoreB) {
-        a.w++;
-        a.pts++;
-        b.l++;
-        a.form.push('W');
-        b.form.push('L');
+    .filter((match) => match.status === "completed" && completedMatchIsScorable(match))
+    .sort((a, b) => matchSortTime(a) - matchSortTime(b) || Number(a.num) - Number(b.num))
+    .forEach((match) => {
+      const teamA = standingsById[match.teamA];
+      const teamB = standingsById[match.teamB];
+      if (!teamA || !teamB) return;
+      const scoreA = Number(match.scoreA);
+      const scoreB = Number(match.scoreB);
+      teamA.mp += 1;
+      teamB.mp += 1;
+      teamA.gw += scoreA;
+      teamA.gl += scoreB;
+      teamB.gw += scoreB;
+      teamB.gl += scoreA;
+      if (scoreA > scoreB) {
+        teamA.w += 1;
+        teamA.pts += 1;
+        teamB.l += 1;
+        teamA.form.push("W");
+        teamB.form.push("L");
       } else {
-        b.w++;
-        b.pts++;
-        a.l++;
-        b.form.push('W');
-        a.form.push('L');
+        teamB.w += 1;
+        teamB.pts += 1;
+        teamA.l += 1;
+        teamB.form.push("W");
+        teamA.form.push("L");
       }
     });
 
-  return Object.values(s)
-    .map((t) => ({
-      ...t,
-      diff: t.gw - t.gl,
-      wr: t.mp > 0 ? Math.round((t.w / t.mp) * 100) : 0,
+  const sorted = Object.values(standingsById)
+    .map((team) => ({
+      ...team,
+      form: team.form.slice(-5),
+      diff: team.gw - team.gl,
+      wr: team.mp > 0 ? Math.round((team.w / team.mp) * 100) : 0,
     }))
-    .sort(
-      (a, b) =>
-        b.pts - a.pts ||
-        b.w - a.w ||
-        b.diff - a.diff ||
-        b.gw - a.gw
-    );
+    .sort((a, b) => standingComparison(a, b) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
+
+  return sorted.reduce((ranked, team, index) => {
+    const previous = ranked[index - 1];
+    const rank = previous && standingComparison(team, previous) === 0
+      ? previous.rank
+      : index + 1;
+    ranked.push({ ...team, rank });
+    return ranked;
+  }, []);
 }
 
 export const TEAM_COLORS = [

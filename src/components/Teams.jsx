@@ -26,7 +26,7 @@ export default function Teams({ teams, matches, addTeam, deleteTeam, updateTeamN
 
   const standings = calcStandings(teams, matches);
   const rankMap = {};
-  standings.forEach((s, i) => (rankMap[s.id] = { rank: i + 1, ...s }));
+  standings.forEach((s) => (rankMap[s.id] = { rank: s.rank, ...s }));
 
   const handleAdd = async (e) => {
     e.preventDefault();

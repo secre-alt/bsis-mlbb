@@ -28,6 +28,7 @@ create table if not exists matches (
   match_time  text,
   status      text not null default 'upcoming' check (status in ('upcoming', 'completed')),
   created_at  timestamptz not null default now(),
+  completed_at timestamptz,
   updated_at  timestamptz not null default now(),
   constraint different_teams check (team_a <> team_b),
   constraint valid_scores check (

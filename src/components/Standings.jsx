@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
 import { calcStandings } from "../lib/standings";
+import { getTournamentStartDate, getWeekNumber } from "../lib/schedule";
 import {
   TeamLogo,
   SectionLabel,
@@ -73,13 +74,13 @@ export default function Standings({
   const latest = matches
     .filter((m) => m.status === "completed")
     .slice()
-    .reverse();
+    .sort(
+      (a, b) =>
+        new Date(b.completedAt || b.date || 0).getTime() -
+        new Date(a.completedAt || a.date || 0).getTime(),
+    );
   const visibleResults = showAllResults ? latest : latest.slice(0, 3);
-  const tournamentStartDate =
-    matches
-      .map((m) => m.date)
-      .filter(Boolean)
-      .sort()[0] ?? null;
+  const tournamentStartDate = getTournamentStartDate(matches);
   const upcoming = matches
     .filter((m) => m.status === "upcoming")
     .slice()
@@ -129,17 +130,10 @@ export default function Standings({
               <span>GL</span>
               <span className="text-center">Pts</span>
             </div>
-            {standings.map((s, i) => {
+            {standings.map((s) => {
               const team = getTeam(s.id);
               if (!team) return null;
-              const rank =
-                standings.findIndex(
-                  (candidate) =>
-                    candidate.pts === s.pts &&
-                    candidate.w === s.w &&
-                    candidate.diff === s.diff &&
-                    candidate.gw === s.gw,
-                ) + 1;
+              const rank = s.rank;
               return (
                 <div
                   key={s.id}
@@ -316,7 +310,12 @@ export default function Standings({
             <div className="space-y-2.5">
               {visibleResults.length ? (
                 visibleResults.map((m) => (
-                  <ResultCard key={m.id} match={m} getTeam={getTeam} />
+                  <ResultCard
+                    key={m.id}
+                    match={m}
+                    getTeam={getTeam}
+                    week={getWeekNumber(m.date, tournamentStartDate)}
+                  />
                 ))
               ) : (
                 <EmptyState title="No results yet" />
@@ -355,18 +354,17 @@ function Cell({ children, className = "", hideOnMobile }) {
   );
 }
 
-function ResultCard({ match: m, getTeam }) {
+function ResultCard({ match: m, getTeam, week }) {
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   const aWin = m.scoreA > m.scoreB;
-  const currentWeek = 1;
   return (
     <div className="group relative overflow-hidden rounded-sm border border-ink-800 bg-ink-900 p-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_10px_18px_rgba(0,0,0,0.08)]">
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ink-700 transition-colors duration-200 group-hover:bg-ember-500" />
       <div className="mb-1 flex justify-between font-mono text-[8px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · Week {currentWeek} · BO3
+          Match {m.num} · Week {week} · BO3
         </span>
       </div>
       <div className="flex items-center justify-between gap-1.5">
@@ -545,7 +543,10 @@ function parseMatchDate(date, time) {
 
   const normalizedTime = (time || "7:00 PM").trim();
   const matchTime = normalizedTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  const hour24 = matchTime
+  const time24 = normalizedTime.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  const hour24 = time24
+    ? Number(time24[1])
+    : matchTime
     ? Number(matchTime[1]) +
       (matchTime[3].toUpperCase() === "PM" && Number(matchTime[1]) !== 12
         ? 12
@@ -554,29 +555,10 @@ function parseMatchDate(date, time) {
         ? -12
         : 0)
     : 19;
-  const minute = matchTime ? Number(matchTime[2]) : 0;
+  const minute = time24 ? Number(time24[2]) : matchTime ? Number(matchTime[2]) : 0;
 
   const dateString = `${date}T${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
   const parsed = new Date(dateString);
 
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function getWeekNumber(dateString, tournamentStartDate) {
-  if (!dateString || !tournamentStartDate) return 1;
-
-  const start = getStartOfWeek(tournamentStartDate);
-  const current = getStartOfWeek(dateString);
-  const diffDays = Math.round((current - start) / (1000 * 60 * 60 * 24));
-
-  return Math.max(1, Math.floor(diffDays / 7) + 1);
-}
-
-function getStartOfWeek(dateString) {
-  const date = new Date(`${dateString}T00:00:00`);
-  const day = date.getDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-  date.setDate(date.getDate() + mondayOffset);
-  date.setHours(0, 0, 0, 0);
-  return date;
 }

@@ -1,4 +1,5 @@
 import { TeamLogo, SectionLabel, EmptyState, SkeletonBlock } from "./shared";
+import { getTournamentStartDate, getWeekNumber } from "../lib/schedule";
 
 export default function Matches({ matches, getTeam, loading }) {
   if (loading) {
@@ -15,6 +16,7 @@ export default function Matches({ matches, getTeam, loading }) {
     .slice()
     .reverse();
   const upcoming = matches.filter((m) => m.status === "upcoming");
+  const tournamentStartDate = getTournamentStartDate(matches);
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-6 sm:grid-cols-2">
@@ -23,7 +25,13 @@ export default function Matches({ matches, getTeam, loading }) {
         <div className="space-y-2.5">
           {completed.length ? (
             completed.map((m) => (
-              <MatchCard key={m.id} match={m} getTeam={getTeam} isResult />
+              <MatchCard
+                key={m.id}
+                match={m}
+                getTeam={getTeam}
+                week={getWeekNumber(m.date, tournamentStartDate)}
+                isResult
+              />
             ))
           ) : (
             <EmptyState title="No completed matches" />
@@ -35,7 +43,12 @@ export default function Matches({ matches, getTeam, loading }) {
         <div className="space-y-2.5">
           {upcoming.length ? (
             upcoming.map((m) => (
-              <MatchCard key={m.id} match={m} getTeam={getTeam} />
+              <MatchCard
+                key={m.id}
+                match={m}
+                getTeam={getTeam}
+                week={getWeekNumber(m.date, tournamentStartDate)}
+              />
             ))
           ) : (
             <EmptyState title="All matches complete" />
@@ -46,12 +59,11 @@ export default function Matches({ matches, getTeam, loading }) {
   );
 }
 
-function MatchCard({ match: m, getTeam, isResult }) {
+function MatchCard({ match: m, getTeam, week, isResult }) {
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   const aWin = isResult && m.scoreA > m.scoreB;
-  const currentWeek = 1;
 
   return (
     <div className="relative overflow-hidden rounded-md border border-[var(--line)] bg-[var(--panel)] p-4 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_14px_26px_rgba(15,23,42,0.08)]">
@@ -62,7 +74,7 @@ function MatchCard({ match: m, getTeam, isResult }) {
       />
       <div className="mb-3 flex items-center justify-between gap-2 font-mono text-[9px] font-bold uppercase tracking-wider">
         <span className="text-[var(--text-muted)]">
-          Match {m.num} · Week {currentWeek} · BO3
+          Match {m.num} · Week {week} · BO3
         </span>
         <span
           className={`rounded-full border px-2 py-0.5 ${
