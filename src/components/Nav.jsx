@@ -49,16 +49,9 @@ export default function Nav({
       }
     };
 
-    const handleScroll = () => {
-      setIsOpen(false);
-      setAdminMenuOpen(false);
-    };
-
     document.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("scroll", handleScroll);
     };
   }, [isOpen, adminMenuOpen]);
 

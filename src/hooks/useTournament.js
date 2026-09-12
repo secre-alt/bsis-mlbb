@@ -24,7 +24,14 @@ function normalizeMatch(m) {
     date: m.match_date,
     time: m.match_time,
     status: m.status,
+    updatedAt: m.updated_at ?? null,
   };
+}
+
+function offlineWriteError() {
+  return typeof navigator !== "undefined" && !navigator.onLine
+    ? { error: "You are offline. Reconnect before changing tournament data." }
+    : null;
 }
 function readCachedTournament() {
   try {
@@ -181,6 +188,8 @@ export function useTournament() {
   // these actions from non-admins as a convenience, not as the security
   // boundary itself.
   const addTeam = useCallback(async ({ abbr, name, colorIdx }) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
     const cleanAbbr = abbr.trim().toUpperCase().slice(0, 5);
     const cleanName = name.trim().slice(0, 80);
     if (!cleanAbbr || !cleanName) return { error: "Fill in all fields." };
@@ -191,11 +200,30 @@ export function useTournament() {
   }, []);
 
   const deleteTeam = useCallback(async (id) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    if (matches.some((match) => match.teamA === id || match.teamB === id)) {
+      return { error: "Teams with match history cannot be deleted." };
+    }
     const { error } = await supabase.from("teams").delete().eq("id", id);
+    return { error: error?.message };
+  }, [matches]);
+
+  const updateTeamName = useCallback(async (id, name) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    const cleanName = name.trim().slice(0, 80);
+    if (!cleanName) return { error: "Team name cannot be empty." };
+    const { error } = await supabase
+      .from("teams")
+      .update({ name: cleanName })
+      .eq("id", id);
     return { error: error?.message };
   }, []);
 
   const uploadTeamLogo = useCallback(async (team, file) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
     if (!file) return { error: "Choose an image first." };
     if (file.size > 3 * 1024 * 1024) {
       return { error: "Logo image must be 3 MB or smaller." };
@@ -231,7 +259,12 @@ export function useTournament() {
   }, []);
 
   const submitMatchResult = useCallback(
-    async ({ num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
+    async ({ id, updatedAt, num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
+      const offline = offlineWriteError();
+      if (offline) return offline;
+      if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
+        return { error: "Match number and round must be positive whole numbers." };
+      }
       if (teamA === teamB) return { error: "Teams cannot be the same." };
       if (scoreA === scoreB) return { error: "Score cannot be tied." };
       const validBo3Score =
@@ -241,7 +274,11 @@ export function useTournament() {
         return {
           error: "Match result must be a valid best-of-3 score (2-0 or 2-1).",
         };
-      const existing = matches.find((m) => m.num === num);
+      const existing = id ? matches.find((m) => m.id === id) : null;
+      if (id && !existing) return { error: "That match no longer exists. Refresh and try again." };
+      if (matches.some((m) => m.num === num && m.id !== id)) {
+        return { error: `Match ${num} already exists. Use its edit action instead.` };
+      }
       const payload = {
         num,
         round,
@@ -253,17 +290,34 @@ export function useTournament() {
         match_time: time,
         status: "completed",
       };
-      const { error } = existing
-        ? await supabase.from("matches").update(payload).eq("id", existing.id)
-        : await supabase.from("matches").insert(payload);
+      let error;
+      if (existing) {
+        let request = supabase.from("matches").update(payload).eq("id", existing.id);
+        if (updatedAt) request = request.eq("updated_at", updatedAt);
+        const response = await request.select("id");
+        error = response.error;
+        if (!error && updatedAt && response.data?.length === 0) {
+          return { error: "This match was changed by another organizer. Refresh and try again." };
+        }
+      } else {
+        ({ error } = await supabase.from("matches").insert(payload));
+      }
       return { error: error?.message };
     },
     [matches],
   );
 
   const scheduleMatch = useCallback(
-    async ({ id, num, round, date, time, teamA, teamB }) => {
+    async ({ id, updatedAt, num, round, date, time, teamA, teamB }) => {
+      const offline = offlineWriteError();
+      if (offline) return offline;
+      if (!Number.isInteger(num) || num < 1 || !Number.isInteger(round) || round < 1) {
+        return { error: "Match number and round must be positive whole numbers." };
+      }
       if (teamA === teamB) return { error: "Teams must be different." };
+      if (matches.some((m) => m.num === num && m.id !== id)) {
+        return { error: `Match ${num} already exists.` };
+      }
       const payload = {
         num,
         round,
@@ -275,16 +329,32 @@ export function useTournament() {
         match_time: time,
         status: "upcoming",
       };
-      const { error } = id
-        ? await supabase.from("matches").update(payload).eq("id", id)
-        : await supabase.from("matches").insert(payload);
+      let error;
+      if (id) {
+        let request = supabase.from("matches").update(payload).eq("id", id);
+        if (updatedAt) request = request.eq("updated_at", updatedAt);
+        const response = await request.select("id");
+        error = response.error;
+        if (!error && updatedAt && response.data?.length === 0) {
+          return { error: "This match was changed by another organizer. Refresh and try again." };
+        }
+      } else {
+        ({ error } = await supabase.from("matches").insert(payload));
+      }
       return { error: error?.message };
     },
-    [],
+    [matches],
   );
 
-  const deleteMatch = useCallback(async (id) => {
-    const { error } = await supabase.from("matches").delete().eq("id", id);
+  const deleteMatch = useCallback(async (id, updatedAt) => {
+    const offline = offlineWriteError();
+    if (offline) return offline;
+    let request = supabase.from("matches").delete().eq("id", id);
+    if (updatedAt) request = request.eq("updated_at", updatedAt);
+    const { data, error } = await request.select("id");
+    if (!error && updatedAt && data?.length === 0) {
+      return { error: "This match was changed by another organizer. Refresh and try again." };
+    }
     return { error: error?.message };
   }, []);
 
@@ -296,6 +366,7 @@ export function useTournament() {
     getTeam,
     addTeam,
     deleteTeam,
+    updateTeamName,
     uploadTeamLogo,
     submitMatchResult,
     scheduleMatch,

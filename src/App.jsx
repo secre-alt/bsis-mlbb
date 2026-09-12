@@ -33,10 +33,7 @@ function AppShell() {
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("bsis-theme");
     if (savedTheme) return savedTheme;
-
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    return "dark";
   });
   const { isAdmin, signIn, signOut } = useAuth();
   const onlineVisitors = useVisitorPresence();
@@ -98,7 +95,7 @@ function AppShell() {
   };
 
   const deleteScheduledMatch = async (match) => {
-    const { error } = await data.deleteMatch(match.id);
+    const { error } = await data.deleteMatch(match.id, match.updatedAt);
     if (error) showToast(error, "error");
     else showToast(`Match ${match.num} deleted`, "success");
     return { error };
@@ -205,7 +202,15 @@ function AppShell() {
   } else if (page === "matches") {
     content = <Matches {...data} />;
   } else if (page === "schedule") {
-    content = <Schedule {...data} />;
+    content = (
+      <Schedule
+        {...data}
+        isAdmin={isAdmin}
+        onEnterResult={openResultInput}
+        onEditMatch={openScheduleEditor}
+        onDeleteMatch={deleteScheduledMatch}
+      />
+    );
   } else if (page === "teams") {
     content = isAdmin ? (
       <Teams {...data} />

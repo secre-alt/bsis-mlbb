@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
 import { SectionLabel, EmptyState, SkeletonBlock } from "./shared";
 
 const FILTERS = [
@@ -27,7 +28,15 @@ function getWeekNumber(dateString, tournamentStartDate) {
   return Math.max(1, Math.floor(diffDays / 7) + 1);
 }
 
-export default function Schedule({ matches, getTeam, loading }) {
+export default function Schedule({
+  matches,
+  getTeam,
+  loading,
+  isAdmin = false,
+  onEnterResult,
+  onEditMatch,
+  onDeleteMatch,
+}) {
   const [filter, setFilter] = useState("all");
 
   if (loading) {
@@ -87,6 +96,10 @@ export default function Schedule({ matches, getTeam, loading }) {
                 const tb = getTeam(m.teamB);
                 if (!ta || !tb) return null;
                 const done = m.status === "completed";
+                const removeMatch = async () => {
+                  if (!window.confirm(`Delete Match ${m.num}? This cannot be undone.`)) return;
+                  await onDeleteMatch?.(m);
+                };
                 return (
                   <div
                     key={m.id}
@@ -114,6 +127,42 @@ export default function Schedule({ matches, getTeam, loading }) {
                     >
                       {done ? "Final" : "Upcoming"}
                     </div>
+                    {isAdmin && (
+                      <div className="col-span-full flex flex-wrap justify-end gap-1.5 border-t border-ink-800 pt-2 sm:col-start-2">
+                        <button
+                          type="button"
+                          onClick={() => onEnterResult?.(m)}
+                          aria-label={done ? "Edit result" : "Input result"}
+                          title={done ? "Edit result" : "Input result"}
+                          className="flex h-7 w-7 items-center justify-center rounded-sm border border-ember-500/35 text-ember-400 hover:bg-ember-500/10 sm:h-auto sm:w-auto sm:px-2 sm:py-1 sm:text-[8px] sm:font-bold sm:uppercase sm:tracking-wider"
+                        >
+                          <ClipboardPenLine size={13} className="sm:hidden" />
+                          <span className="hidden sm:inline">{done ? "Edit result" : "Input result"}</span>
+                        </button>
+                        {!done && (
+                          <button
+                            type="button"
+                            onClick={() => onEditMatch?.(m)}
+                            aria-label="Edit schedule"
+                            title="Edit schedule"
+                            className="flex h-7 w-7 items-center justify-center rounded-sm border border-ink-700 text-ink-300 hover:border-ember-500/50 sm:h-auto sm:w-auto sm:px-2 sm:py-1 sm:text-[8px] sm:font-bold sm:uppercase sm:tracking-wider"
+                          >
+                            <Pencil size={13} className="sm:hidden" />
+                            <span className="hidden sm:inline">Edit schedule</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={removeMatch}
+                          aria-label="Delete match"
+                          title="Delete match"
+                          className="flex h-7 w-7 items-center justify-center rounded-sm border border-blood-500/30 text-blood-500 hover:bg-blood-500/10 sm:h-auto sm:w-auto sm:px-2 sm:py-1 sm:text-[8px] sm:font-bold sm:uppercase sm:tracking-wider"
+                        >
+                          <Trash2 size={13} className="sm:hidden" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}

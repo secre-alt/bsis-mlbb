@@ -4,6 +4,10 @@ import { EmptyState, SectionLabel } from "./shared";
 import { useToast } from "../hooks/useToast";
 
 const todayISO = () => new Date().toISOString().split("T")[0];
+const nextMatchNumber = (matches) =>
+  Math.max(0, ...matches.map((match) => Number(match.num) || 0)) + 1;
+const nextRoundNumber = (matches) =>
+  Math.max(0, ...matches.map((match) => Number(match.round) || 0)) + 1;
 
 export default function AdminPanel({
   teams,
@@ -15,13 +19,9 @@ export default function AdminPanel({
   onDone,
 }) {
   const showToast = useToast();
-  const maxRound = matches.length
-    ? Math.max(...matches.map((m) => m.round))
-    : 0;
-
   const [result, setResult] = useState(() => ({
-    num: matches.length + 1,
-    round: maxRound + 1,
+    num: nextMatchNumber(matches),
+    round: nextRoundNumber(matches),
     date: todayISO(),
     time: "7:00 PM",
     teamA: teams[0]?.id,
@@ -33,8 +33,8 @@ export default function AdminPanel({
   const [savingResult, setSavingResult] = useState(false);
 
   const [sched, setSched] = useState(() => ({
-    num: matches.length + 1,
-    round: maxRound + 1,
+    num: nextMatchNumber(matches),
+    round: nextRoundNumber(matches),
     date: todayISO(),
     time: "7:00 PM",
     teamA: teams[0]?.id,
@@ -46,14 +46,16 @@ export default function AdminPanel({
     if (!resultMatch) return;
 
     setResult({
+      id: resultMatch.id,
+      updatedAt: resultMatch.updatedAt,
       num: resultMatch.num,
       round: resultMatch.round,
       date: resultMatch.date || todayISO(),
       time: resultMatch.time || "7:00 PM",
       teamA: resultMatch.teamA,
       teamB: resultMatch.teamB,
-      scoreA: 2,
-      scoreB: 1,
+      scoreA: resultMatch.scoreA ?? 2,
+      scoreB: resultMatch.scoreB ?? 1,
     });
     setResultError("");
   }, [resultMatch]);
@@ -63,6 +65,7 @@ export default function AdminPanel({
 
     setSched({
       id: scheduledMatch.id,
+      updatedAt: scheduledMatch.updatedAt,
       num: scheduledMatch.num,
       round: scheduledMatch.round,
       date: scheduledMatch.date || todayISO(),
@@ -98,6 +101,8 @@ export default function AdminPanel({
     setSavingResult(true);
     const { error } = await submitMatchResult({
       ...result,
+      num: Number(result.num),
+      round: Number(result.round),
       teamA: Number(result.teamA),
       teamB: Number(result.teamB),
       scoreA: Number(result.scoreA),
@@ -106,21 +111,12 @@ export default function AdminPanel({
     setSavingResult(false);
     if (error) return setResultError(error);
 
-    const nextNum =
-      Math.max(
-        1,
-        ...matches.map((m) => Number(m.num) || 0),
-        Number(result.num) || 0,
-      ) + 1;
-    const nextRound =
-      Math.max(
-        1,
-        ...matches.map((m) => Number(m.round) || 0),
-        Number(result.round) || 0,
-      ) + 1;
+    const nextNum = Math.max(nextMatchNumber(matches), Number(result.num) + 1);
+    const nextRound = Math.max(nextRoundNumber(matches), Number(result.round) + 1);
 
     setResult((current) => ({
       ...current,
+      id: undefined,
       num: nextNum,
       round: nextRound,
       date: todayISO(),
@@ -148,27 +144,20 @@ export default function AdminPanel({
     setSavingSched(true);
     const { error } = await scheduleMatch({
       ...sched,
+      num: Number(sched.num),
+      round: Number(sched.round),
       teamA: Number(sched.teamA),
       teamB: Number(sched.teamB),
     });
     setSavingSched(false);
     if (error) return showToast(error, "error");
 
-    const nextNum =
-      Math.max(
-        1,
-        ...matches.map((m) => Number(m.num) || 0),
-        Number(sched.num) || 0,
-      ) + 1;
-    const nextRound =
-      Math.max(
-        1,
-        ...matches.map((m) => Number(m.round) || 0),
-        Number(sched.round) || 0,
-      ) + 1;
+    const nextNum = Math.max(nextMatchNumber(matches), Number(sched.num) + 1);
+    const nextRound = Math.max(nextRoundNumber(matches), Number(sched.round) + 1);
 
     setSched((current) => ({
       ...current,
+      id: undefined,
       num: nextNum,
       round: nextRound,
       date: todayISO(),

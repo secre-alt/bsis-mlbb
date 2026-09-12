@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ClipboardPenLine, Pencil, Trash2 } from "lucide-react";
 import { calcStandings } from "../lib/standings";
 import {
   TeamLogo,
@@ -8,7 +9,7 @@ import {
   FormDots,
 } from "./shared";
 
-const COLS = ["RANK", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
+const COLS = ["RANK", "Team", "MP", "W-L", "GW", "GL", "+/-", "Form", "PTS"];
 
 export default function Standings({
   teams,
@@ -74,7 +75,20 @@ export default function Standings({
     .slice()
     .reverse();
   const visibleResults = showAllResults ? latest : latest.slice(0, 3);
-  const upcoming = matches.filter((m) => m.status === "upcoming").slice(0, 3);
+  const tournamentStartDate =
+    matches
+      .map((m) => m.date)
+      .filter(Boolean)
+      .sort()[0] ?? null;
+  const upcoming = matches
+    .filter((m) => m.status === "upcoming")
+    .slice()
+    .sort((a, b) => {
+      const aTime = parseMatchDate(a.date, a.time)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const bTime = parseMatchDate(b.date, b.time)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return aTime - bTime || Number(a.num) - Number(b.num);
+    })
+    .slice(0, 3);
 
   return (
     <div
@@ -90,7 +104,7 @@ export default function Standings({
         </div>
         {standings.length ? (
           <div className="overflow-hidden rounded-xl border border-ember-500/20 bg-[linear-gradient(180deg,var(--accent-soft),var(--panel))] shadow-[0_12px_24px_rgba(15,23,42,0.12)]">
-            <div className="hidden grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] gap-1 bg-[rgba(17,24,39,0.9)] px-4 py-2.5 sm:grid">
+            <div className="hidden grid-cols-[32px_1fr_32px_44px_36px_36px_40px_48px_44px] gap-1 bg-[rgba(17,24,39,0.9)] px-4 py-2.5 sm:grid">
               <div className="text-center text-[9px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
                 {COLS[0]}
               </div>
@@ -106,15 +120,26 @@ export default function Standings({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 bg-[var(--panel-soft)] px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)] sm:hidden">
+            <div className="grid grid-cols-[28px_minmax(0,1fr)_24px_34px_24px_24px_34px] items-center gap-1 bg-[var(--panel-soft)] px-2 py-1.5 text-center text-[7px] font-black uppercase tracking-[0.08em] text-[var(--text-muted)] sm:hidden">
               <span className="text-center">Rank</span>
-              <span className="pl-1">Team</span>
+              <span className="text-left">Team</span>
+              <span>MP</span>
+              <span>W-L</span>
+              <span>GW</span>
+              <span>GL</span>
               <span className="text-center">Pts</span>
             </div>
             {standings.map((s, i) => {
               const team = getTeam(s.id);
               if (!team) return null;
-              const rank = i + 1;
+              const rank =
+                standings.findIndex(
+                  (candidate) =>
+                    candidate.pts === s.pts &&
+                    candidate.w === s.w &&
+                    candidate.diff === s.diff &&
+                    candidate.gw === s.gw,
+                ) + 1;
               return (
                 <div
                   key={s.id}
@@ -135,7 +160,7 @@ export default function Standings({
                       );
                     }
                   }}
-                  className={`relative grid grid-cols-[34px_minmax(0,1fr)_38px] items-center gap-2 border-t border-[var(--line)] px-3 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/30 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.06)] sm:grid-cols-[32px_1fr_32px_32px_32px_36px_36px_40px_48px_44px] sm:gap-1 sm:px-4 sm:py-0 sm:min-h-[56px] ${
+                  className={`relative grid grid-cols-[28px_minmax(0,1fr)_24px_34px_24px_24px_34px] items-center gap-1 border-t border-[var(--line)] px-2 py-3 first:border-t-0 transition-all duration-200 hover:border-ember-500/30 hover:bg-[var(--panel-soft)] hover:shadow-[inset_0_0_0_1px_rgba(255,90,31,0.06)] sm:grid-cols-[32px_1fr_32px_44px_36px_36px_40px_48px_44px] sm:gap-1 sm:px-4 sm:py-0 sm:min-h-[56px] ${
                     rank === 1
                       ? "bg-[linear-gradient(90deg,var(--accent-soft),rgba(255,120,56,0.02))] hover:bg-[linear-gradient(90deg,rgba(255,120,56,0.14),rgba(255,120,56,0.04))]"
                       : rank === 2
@@ -180,13 +205,13 @@ export default function Standings({
                       </div>
                     </div>
                   </div>
+                  <MobileCell>{s.mp}</MobileCell>
+                  <MobileCell className="text-rift-500">{s.w}-{s.l}</MobileCell>
+                  <MobileCell>{s.gw}</MobileCell>
+                  <MobileCell>{s.gl}</MobileCell>
+                  <MobileCell className="text-ember-500">{s.pts}</MobileCell>
                   <Cell hideOnMobile>{s.mp}</Cell>
-                  <Cell hideOnMobile className="text-rift-500">
-                    {s.w}
-                  </Cell>
-                  <Cell hideOnMobile className="text-blood-500">
-                    {s.l}
-                  </Cell>
+                  <Cell hideOnMobile className="text-rift-500">{s.w}-{s.l}</Cell>
                   <Cell hideOnMobile>{s.gw}</Cell>
                   <Cell hideOnMobile>{s.gl}</Cell>
                   <Cell
@@ -204,7 +229,7 @@ export default function Standings({
                   <div className="hidden justify-center sm:flex">
                     <FormDots form={s.form} />
                   </div>
-                  <div className="relative flex items-center justify-center">
+                  <div className="relative hidden items-center justify-center sm:flex">
                     <div className="text-center text-[12px] font-black text-ember-500 sm:text-sm">
                       {s.pts}
                     </div>
@@ -221,8 +246,7 @@ export default function Standings({
                     <div className="col-span-full mt-2 grid grid-cols-3 gap-2 rounded-sm border border-[var(--line)] bg-[var(--panel-soft)] p-2 sm:hidden">
                       {[
                         ["MP", s.mp],
-                        ["W", s.w],
-                        ["L", s.l],
+                        ["W-L", `${s.w}-${s.l}`],
                         ["GW", s.gw],
                         ["GL", s.gl],
                         ["+/-", s.diff > 0 ? `+${s.diff}` : s.diff],
@@ -269,6 +293,7 @@ export default function Standings({
                   key={m.id}
                   match={m}
                   getTeam={getTeam}
+                  week={getWeekNumber(m.date, tournamentStartDate)}
                   isAdmin={isAdmin}
                   onEnterResult={onEnterResult}
                   onEditMatch={onEditMatch}
@@ -377,6 +402,7 @@ function TeamCol({ team, score, winner }) {
 function UpcomingCard({
   match: m,
   getTeam,
+  week,
   isAdmin,
   onEnterResult,
   onEditMatch,
@@ -386,7 +412,6 @@ function UpcomingCard({
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
-  const currentWeek = 1;
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete Match ${m.num}? This cannot be undone.`)) return;
@@ -399,7 +424,7 @@ function UpcomingCard({
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ember-500 transition-colors duration-200 group-hover:bg-amber-400" />
       <div className="mb-2 flex justify-between font-mono text-[9px] font-bold uppercase tracking-wider text-ink-600">
         <span>
-          Match {m.num} · Week {currentWeek} · BO3
+          Match {m.num} · Week {week} · BO3
         </span>
         <span className="text-ember-500">{m.time || ""}</span>
       </div>
@@ -428,27 +453,50 @@ function UpcomingCard({
           <button
             type="button"
             onClick={() => onEnterResult?.(m)}
-            className="rounded-sm border border-ember-500/40 bg-ember-500/10 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-ember-400 transition hover:bg-ember-500 hover:text-white"
+            aria-label="Input result"
+            title="Input result"
+            className="flex min-h-8 items-center justify-center rounded-sm border border-ember-500/40 bg-ember-500/10 px-1.5 py-2 text-ember-400 transition hover:bg-ember-500 hover:text-white sm:gap-1 sm:text-[8px] sm:font-black sm:uppercase sm:tracking-[0.12em]"
           >
-            Input result
+            <ClipboardPenLine size={14} className="sm:hidden" />
+            <span className="hidden sm:inline">Input result</span>
           </button>
           <button
             type="button"
             onClick={() => onEditMatch?.(m)}
-            className="rounded-sm border border-ink-700 bg-ink-800 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-ink-300 transition hover:border-ember-500/50 hover:text-ember-400"
+            aria-label="Edit match"
+            title="Edit match"
+            className="flex min-h-8 items-center justify-center rounded-sm border border-ink-700 bg-ink-800 px-1.5 py-2 text-ink-300 transition hover:border-ember-500/50 hover:text-ember-400 sm:gap-1 sm:text-[8px] sm:font-black sm:uppercase sm:tracking-[0.12em]"
           >
-            Edit
+            <Pencil size={14} className="sm:hidden" />
+            <span className="hidden sm:inline">Edit</span>
           </button>
           <button
             type="button"
             disabled={deleting}
             onClick={handleDelete}
-            className="rounded-sm border border-blood-500/35 bg-blood-500/10 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-blood-500 transition hover:bg-blood-500 hover:text-white disabled:opacity-50"
+            aria-label="Delete match"
+            title="Delete match"
+            className="flex min-h-8 items-center justify-center rounded-sm border border-blood-500/35 bg-blood-500/10 px-1.5 py-2 text-blood-500 transition hover:bg-blood-500 hover:text-white disabled:opacity-50 sm:gap-1 sm:text-[8px] sm:font-black sm:uppercase sm:tracking-[0.12em]"
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {deleting ? (
+              <span className="text-[8px] font-black uppercase sm:text-inherit">Deleting…</span>
+            ) : (
+              <>
+                <Trash2 size={14} className="sm:hidden" />
+                <span className="hidden sm:inline">Delete</span>
+              </>
+            )}
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function MobileCell({ children, className = "" }) {
+  return (
+    <div className={`text-center text-[10px] font-bold text-[var(--text)] sm:hidden ${className}`}>
+      {children}
     </div>
   );
 }
@@ -512,4 +560,23 @@ function parseMatchDate(date, time) {
   const parsed = new Date(dateString);
 
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getWeekNumber(dateString, tournamentStartDate) {
+  if (!dateString || !tournamentStartDate) return 1;
+
+  const start = getStartOfWeek(tournamentStartDate);
+  const current = getStartOfWeek(dateString);
+  const diffDays = Math.round((current - start) / (1000 * 60 * 60 * 24));
+
+  return Math.max(1, Math.floor(diffDays / 7) + 1);
+}
+
+function getStartOfWeek(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  const day = date.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + mondayOffset);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
