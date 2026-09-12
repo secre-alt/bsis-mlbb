@@ -28,6 +28,7 @@ function AppShell() {
     return "standings";
   });
   const [showLogin, setShowLogin] = useState(false);
+  const [matchToRecord, setMatchToRecord] = useState(null);
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("bsis-theme");
     if (savedTheme) return savedTheme;
@@ -69,6 +70,20 @@ function AppShell() {
       return;
     }
     setPage(target);
+  };
+
+  const openResultInput = (match) => {
+    if (!isAdmin) {
+      setShowLogin(true);
+      return;
+    }
+    setMatchToRecord(match);
+    setPage("admin");
+  };
+
+  const finishResultInput = () => {
+    setMatchToRecord(null);
+    setPage("standings");
   };
 
   if (data.loading) {
@@ -152,7 +167,13 @@ function AppShell() {
 
   let content;
   if (page === "standings") {
-    content = <Standings {...data} />;
+    content = (
+      <Standings
+        {...data}
+        isAdmin={isAdmin}
+        onEnterResult={openResultInput}
+      />
+    );
   } else if (page === "matches") {
     content = <Matches {...data} />;
   } else if (page === "schedule") {
@@ -168,7 +189,11 @@ function AppShell() {
     );
   } else if (page === "admin") {
     content = isAdmin ? (
-      <AdminPanel {...data} onDone={() => setPage("standings")} />
+      <AdminPanel
+        {...data}
+        resultMatch={matchToRecord}
+        onDone={finishResultInput}
+      />
     ) : (
       <LockedNotice
         title="Enter result — Admin only"

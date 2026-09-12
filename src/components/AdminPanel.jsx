@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { EmptyState, SectionLabel } from "./shared";
 import { useToast } from "../hooks/useToast";
@@ -10,6 +10,7 @@ export default function AdminPanel({
   matches,
   submitMatchResult,
   scheduleMatch,
+  resultMatch,
   onDone,
 }) {
   const showToast = useToast();
@@ -39,6 +40,22 @@ export default function AdminPanel({
     teamB: teams[1]?.id,
   }));
   const [savingSched, setSavingSched] = useState(false);
+
+  useEffect(() => {
+    if (!resultMatch) return;
+
+    setResult({
+      num: resultMatch.num,
+      round: resultMatch.round,
+      date: resultMatch.date || todayISO(),
+      time: resultMatch.time || "7:00 PM",
+      teamA: resultMatch.teamA,
+      teamB: resultMatch.teamB,
+      scoreA: 2,
+      scoreB: 1,
+    });
+    setResultError("");
+  }, [resultMatch]);
 
   const teamOptions = useMemo(
     () =>
@@ -148,7 +165,9 @@ export default function AdminPanel({
 
   return (
     <div className="mx-auto max-w-xl px-5 py-6">
-      <SectionLabel>Record match result</SectionLabel>
+      <SectionLabel>
+        {resultMatch ? `Input result — Match ${resultMatch.num}` : "Record match result"}
+      </SectionLabel>
       <form
         onSubmit={handleSubmitResult}
         className="mb-8 rounded-md border border-ink-800 bg-ink-900 p-6"

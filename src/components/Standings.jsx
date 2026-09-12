@@ -10,7 +10,14 @@ import {
 
 const COLS = ["RANK", "Team", "MP", "W", "L", "GW", "GL", "+/-", "Form", "PTS"];
 
-export default function Standings({ teams, matches, getTeam, loading }) {
+export default function Standings({
+  teams,
+  matches,
+  getTeam,
+  loading,
+  isAdmin = false,
+  onEnterResult,
+}) {
   const [showAllResults, setShowAllResults] = useState(false);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const standingsRef = useRef(null);
@@ -256,7 +263,13 @@ export default function Standings({ teams, matches, getTeam, loading }) {
           <div className="space-y-2.5">
             {upcoming.length ? (
               upcoming.map((m) => (
-                <UpcomingCard key={m.id} match={m} getTeam={getTeam} />
+                <UpcomingCard
+                  key={m.id}
+                  match={m}
+                  getTeam={getTeam}
+                  isAdmin={isAdmin}
+                  onEnterResult={onEnterResult}
+                />
               ))
             ) : (
               <EmptyState title="No upcoming matches" />
@@ -357,7 +370,7 @@ function TeamCol({ team, score, winner }) {
   );
 }
 
-function UpcomingCard({ match: m, getTeam }) {
+function UpcomingCard({ match: m, getTeam, isAdmin, onEnterResult }) {
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
@@ -391,6 +404,15 @@ function UpcomingCard({ match: m, getTeam }) {
         </span>
         <LiveCountdown date={m.date} time={m.time} />
       </div>
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={() => onEnterResult?.(m)}
+          className="mt-3 w-full rounded-sm border border-ember-500/40 bg-ember-500/10 px-2 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-ember-400 transition hover:bg-ember-500 hover:text-white"
+        >
+          Input result
+        </button>
+      )}
     </div>
   );
 }
