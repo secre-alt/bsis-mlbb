@@ -29,6 +29,7 @@ function AppShell() {
   });
   const [showLogin, setShowLogin] = useState(false);
   const [matchToRecord, setMatchToRecord] = useState(null);
+  const [matchToEdit, setMatchToEdit] = useState(null);
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("bsis-theme");
     if (savedTheme) return savedTheme;
@@ -69,6 +70,10 @@ function AppShell() {
       setShowLogin(true);
       return;
     }
+    if (target === "admin") {
+      setMatchToRecord(null);
+      setMatchToEdit(null);
+    }
     setPage(target);
   };
 
@@ -77,12 +82,31 @@ function AppShell() {
       setShowLogin(true);
       return;
     }
+    setMatchToEdit(null);
     setMatchToRecord(match);
     setPage("admin");
   };
 
+  const openScheduleEditor = (match) => {
+    if (!isAdmin) {
+      setShowLogin(true);
+      return;
+    }
+    setMatchToRecord(null);
+    setMatchToEdit(match);
+    setPage("admin");
+  };
+
+  const deleteScheduledMatch = async (match) => {
+    const { error } = await data.deleteMatch(match.id);
+    if (error) showToast(error, "error");
+    else showToast(`Match ${match.num} deleted`, "success");
+    return { error };
+  };
+
   const finishResultInput = () => {
     setMatchToRecord(null);
+    setMatchToEdit(null);
     setPage("standings");
   };
 
@@ -143,6 +167,8 @@ function AppShell() {
 
   const handleSignOut = async () => {
     await signOut();
+    setMatchToRecord(null);
+    setMatchToEdit(null);
     setPage("standings");
     showToast("Signed out of admin");
   };
@@ -172,6 +198,8 @@ function AppShell() {
         {...data}
         isAdmin={isAdmin}
         onEnterResult={openResultInput}
+        onEditMatch={openScheduleEditor}
+        onDeleteMatch={deleteScheduledMatch}
       />
     );
   } else if (page === "matches") {
@@ -192,6 +220,7 @@ function AppShell() {
       <AdminPanel
         {...data}
         resultMatch={matchToRecord}
+        scheduledMatch={matchToEdit}
         onDone={finishResultInput}
       />
     ) : (

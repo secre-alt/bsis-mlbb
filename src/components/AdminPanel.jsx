@@ -11,6 +11,7 @@ export default function AdminPanel({
   submitMatchResult,
   scheduleMatch,
   resultMatch,
+  scheduledMatch,
   onDone,
 }) {
   const showToast = useToast();
@@ -56,6 +57,20 @@ export default function AdminPanel({
     });
     setResultError("");
   }, [resultMatch]);
+
+  useEffect(() => {
+    if (!scheduledMatch) return;
+
+    setSched({
+      id: scheduledMatch.id,
+      num: scheduledMatch.num,
+      round: scheduledMatch.round,
+      date: scheduledMatch.date || todayISO(),
+      time: scheduledMatch.time || "7:00 PM",
+      teamA: scheduledMatch.teamA,
+      teamB: scheduledMatch.teamB,
+    });
+  }, [scheduledMatch]);
 
   const teamOptions = useMemo(
     () =>
@@ -160,7 +175,8 @@ export default function AdminPanel({
       time: "7:00 PM",
     }));
 
-    showToast("Match scheduled", "success");
+    showToast(scheduledMatch ? "Scheduled match updated" : "Match scheduled", "success");
+    if (scheduledMatch) onDone?.();
   };
 
   return (
@@ -281,7 +297,11 @@ export default function AdminPanel({
         </button>
       </form>
 
-      <SectionLabel>Schedule upcoming match</SectionLabel>
+      <SectionLabel>
+        {scheduledMatch
+          ? `Edit scheduled match — Match ${scheduledMatch.num}`
+          : "Schedule upcoming match"}
+      </SectionLabel>
       <form
         onSubmit={handleSchedule}
         className="rounded-md border border-ink-800 bg-ink-900 p-6"
@@ -360,7 +380,11 @@ export default function AdminPanel({
           disabled={savingSched}
           className="w-full rounded-sm border border-ink-700 bg-ink-800 py-3 text-xs font-bold uppercase tracking-wider text-ink-300 transition hover:border-ink-600"
         >
-          {savingSched ? "Scheduling…" : "Schedule match"}
+          {savingSched
+            ? "Saving…"
+            : scheduledMatch
+              ? "Save changes"
+              : "Schedule match"}
         </button>
       </form>
     </div>

@@ -17,6 +17,8 @@ export default function Standings({
   loading,
   isAdmin = false,
   onEnterResult,
+  onEditMatch,
+  onDeleteMatch,
 }) {
   const [showAllResults, setShowAllResults] = useState(false);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
@@ -269,6 +271,8 @@ export default function Standings({
                   getTeam={getTeam}
                   isAdmin={isAdmin}
                   onEnterResult={onEnterResult}
+                  onEditMatch={onEditMatch}
+                  onDeleteMatch={onDeleteMatch}
                 />
               ))
             ) : (
@@ -370,11 +374,26 @@ function TeamCol({ team, score, winner }) {
   );
 }
 
-function UpcomingCard({ match: m, getTeam, isAdmin, onEnterResult }) {
+function UpcomingCard({
+  match: m,
+  getTeam,
+  isAdmin,
+  onEnterResult,
+  onEditMatch,
+  onDeleteMatch,
+}) {
+  const [deleting, setDeleting] = useState(false);
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
   const currentWeek = 1;
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete Match ${m.num}? This cannot be undone.`)) return;
+    setDeleting(true);
+    await onDeleteMatch?.(m);
+    setDeleting(false);
+  };
   return (
     <div className="group relative overflow-hidden rounded-md border border-ink-800 bg-ink-900 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_12px_20px_rgba(0,0,0,0.08)]">
       <span className="absolute left-0 top-0 h-full w-[3px] bg-ember-500 transition-colors duration-200 group-hover:bg-amber-400" />
@@ -405,13 +424,30 @@ function UpcomingCard({ match: m, getTeam, isAdmin, onEnterResult }) {
         <LiveCountdown date={m.date} time={m.time} />
       </div>
       {isAdmin && (
-        <button
-          type="button"
-          onClick={() => onEnterResult?.(m)}
-          className="mt-3 w-full rounded-sm border border-ember-500/40 bg-ember-500/10 px-2 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-ember-400 transition hover:bg-ember-500 hover:text-white"
-        >
-          Input result
-        </button>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => onEnterResult?.(m)}
+            className="rounded-sm border border-ember-500/40 bg-ember-500/10 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-ember-400 transition hover:bg-ember-500 hover:text-white"
+          >
+            Input result
+          </button>
+          <button
+            type="button"
+            onClick={() => onEditMatch?.(m)}
+            className="rounded-sm border border-ink-700 bg-ink-800 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-ink-300 transition hover:border-ember-500/50 hover:text-ember-400"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={handleDelete}
+            className="rounded-sm border border-blood-500/35 bg-blood-500/10 px-1.5 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-blood-500 transition hover:bg-blood-500 hover:text-white disabled:opacity-50"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        </div>
       )}
     </div>
   );

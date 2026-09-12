@@ -262,7 +262,7 @@ export function useTournament() {
   );
 
   const scheduleMatch = useCallback(
-    async ({ num, round, date, time, teamA, teamB }) => {
+    async ({ id, num, round, date, time, teamA, teamB }) => {
       if (teamA === teamB) return { error: "Teams must be different." };
       const payload = {
         num,
@@ -275,11 +275,18 @@ export function useTournament() {
         match_time: time,
         status: "upcoming",
       };
-      const { error } = await supabase.from("matches").insert(payload);
+      const { error } = id
+        ? await supabase.from("matches").update(payload).eq("id", id)
+        : await supabase.from("matches").insert(payload);
       return { error: error?.message };
     },
     [],
   );
+
+  const deleteMatch = useCallback(async (id) => {
+    const { error } = await supabase.from("matches").delete().eq("id", id);
+    return { error: error?.message };
+  }, []);
 
   return {
     teams,
@@ -292,5 +299,6 @@ export function useTournament() {
     uploadTeamLogo,
     submitMatchResult,
     scheduleMatch,
+    deleteMatch,
   };
 }
