@@ -1,17 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BSIS MLBB icon">
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#141417"/>
-      <stop offset="100%" stop-color="#0a0a0b"/>
+      <stop offset="0%" stop-color="#1a1a1f"/>
+      <stop offset="50%" stop-color="#0f0f12"/>
+      <stop offset="100%" stop-color="#08080a"/>
     </linearGradient>
     <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#ff7a3d"/>
-      <stop offset="100%" stop-color="#ff5a1f"/>
+      <stop offset="0%" stop-color="#ff8c5a"/>
+      <stop offset="50%" stop-color="#ff6b3d"/>
+      <stop offset="100%" stop-color="#e55a2b"/>
     </linearGradient>
+    <linearGradient id="glow" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff9d6a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff6b3d" stop-opacity="0.1"/>
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#ff6b3d" flood-opacity="0.3"/>
+    </filter>
+    <filter id="innerGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feOffset in="blur" dx="0" dy="0" result="offsetBlur"/>
+      <feFlood flood-color="#ff6b3d" flood-opacity="0.15" result="color"/>
+      <feComposite in="color" in2="offsetBlur" operator="in" result="shadow"/>
+      <feComposite in="shadow" in2="SourceAlpha" operator="in" result="innerShadow"/>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="innerShadow"/>
+      </feMerge>
+    </filter>
   </defs>
   <rect width="512" height="512" rx="104" fill="url(#bg)"/>
-  <rect x="40" y="40" width="432" height="432" rx="92" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
-  <circle cx="256" cy="256" r="132" fill="url(#accent)" opacity="0.12"/>
-  <path d="M164 132h104c58 0 94 36 94 87 0 31-18 58-45 73 36 11 63 43 63 86 0 65-52 96-120 96H164V132zm54 46v74h43c33 0 53-18 53-38s-20-36-53-36h-43zm0 120v86h52c36 0 60-18 60-43 0-28-24-43-60-43h-52z" fill="url(#accent)"/>
-  <text x="256" y="396" text-anchor="middle" font-size="72" font-weight="900" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" letter-spacing="6">B</text>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="none" stroke="url(#glow)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="140" fill="url(#glow)" opacity="0.5"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="url(#accent)" stroke-width="3" opacity="0.3"/>
+  <path d="M164 128h104c60 0 96 38 96 90 0 32-18 60-46 75 37 12 64 45 64 88 0 67-53 99-122 99H164V128zm56 48v76h44c34 0 54-19 54-39s-20-37-54-37h-44zm0 124v88h54c37 0 61-19 61-44 0-29-25-44-61-44h-54z" fill="url(#accent)" filter="url(#shadow)"/>
+  <path d="M164 128h104c60 0 96 38 96 90 0 32-18 60-46 75 37 12 64 45 64 88 0 67-53 99-122 99H164V128zm56 48v76h44c34 0 54-19 54-39s-20-37-54-37h-44zm0 124v88h54c37 0 61-19 61-44 0-29-25-44-61-44h-54z" fill="url(#accent)" filter="url(#innerGlow)"/>
+  <circle cx="256" cy="256" r="85" fill="none" stroke="url(#accent)" stroke-width="2" opacity="0.15"/>
+  <circle cx="256" cy="256" r="6" fill="#ff8c5a" opacity="0.8"/>
 </svg>
