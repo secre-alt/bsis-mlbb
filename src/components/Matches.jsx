@@ -20,6 +20,12 @@ export default function Matches({ matches, getTeam, loading }) {
       return bTime - aTime || Number(b.num) - Number(a.num);
     });
   const upcoming = matches.filter((m) => m.status === "upcoming");
+  const live = matches.filter((m) => m.status === "live");
+  const nextUp = [...live, ...upcoming].sort((a, b) => {
+    const aTime = new Date(`${a.date || ""}T${a.time || "00:00"}`).getTime() || Number.MAX_SAFE_INTEGER;
+    const bTime = new Date(`${b.date || ""}T${b.time || "00:00"}`).getTime() || Number.MAX_SAFE_INTEGER;
+    return aTime - bTime || Number(a.num) - Number(b.num);
+  });
   const tournamentStartDate = getTournamentStartDate(matches);
 
   return (
@@ -43,15 +49,16 @@ export default function Matches({ matches, getTeam, loading }) {
         </div>
       </div>
       <div>
-        <SectionLabel>Upcoming</SectionLabel>
+        <SectionLabel>Next up</SectionLabel>
         <div className="space-y-2.5">
-          {upcoming.length ? (
-            upcoming.map((m) => (
+          {nextUp.length ? (
+            nextUp.map((m) => (
               <MatchCard
                 key={m.id}
                 match={m}
                 getTeam={getTeam}
                 week={getWeekNumber(m.date, tournamentStartDate)}
+                live={m.status === "live"}
               />
             ))
           ) : (
@@ -63,11 +70,11 @@ export default function Matches({ matches, getTeam, loading }) {
   );
 }
 
-function MatchCard({ match: m, getTeam, week, isResult }) {
+function MatchCard({ match: m, getTeam, week, isResult, live = false }) {
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
-  const aWin = isResult && m.scoreA > m.scoreB;
+  const aWin = (isResult || live) && m.scoreA > m.scoreB;
 
   return (
     <div className="relative overflow-hidden rounded-md border border-[var(--line)] bg-[var(--panel)] p-4 shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-ember-500/40 hover:shadow-[0_14px_26px_rgba(15,23,42,0.08)]">
@@ -87,13 +94,13 @@ function MatchCard({ match: m, getTeam, week, isResult }) {
               : "border-ember-500/20 bg-ember-500/10 text-ember-500"
           }`}
         >
-          {isResult ? "Final" : "Upcoming"}
+          {isResult ? "Final" : live ? "Live" : "Upcoming"}
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
         <TeamBlock team={ta} dim={isResult && !aWin} />
         <div className="flex min-w-[74px] items-center justify-center gap-2">
-          {isResult ? (
+          {isResult || live ? (
             <>
               <span
                 className={`font-display text-2xl font-black leading-none ${aWin ? "text-ember-500" : "text-[var(--text-muted)]"}`}
@@ -124,7 +131,7 @@ function MatchCard({ match: m, getTeam, week, isResult }) {
         <div
           className={`text-right text-[9px] font-bold uppercase tracking-wider ${isResult ? "text-[var(--text-muted)]" : "text-ember-500"}`}
         >
-          {isResult ? `${aWin ? ta.abbr : tb.abbr} wins` : `${formatMatchDate(m.date)} · ${m.time || "Time TBD"}`}
+          {isResult ? `${aWin ? ta.abbr : tb.abbr} wins` : live ? "Series in progress" : `${formatMatchDate(m.date)} · ${m.time || "Time TBD"}`}
         </div>
       </div>
     </div>

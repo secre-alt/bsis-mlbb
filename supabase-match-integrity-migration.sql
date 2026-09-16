@@ -7,6 +7,7 @@ alter table public.matches
 alter table public.matches
   add constraint valid_scores check (
     (status = 'upcoming' and score_a is null and score_b is null)
+    or (status = 'live' and score_a in (0, 1) and score_b in (0, 1))
     or (
       status = 'completed'
       and (

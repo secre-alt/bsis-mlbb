@@ -66,8 +66,8 @@ export default function AdminPanel({
       time: toTimeInput(resultMatch.time),
       teamA: resultMatch.teamA,
       teamB: resultMatch.teamB,
-      scoreA: resultMatch.scoreA ?? 2,
-      scoreB: resultMatch.scoreB ?? 1,
+      scoreA: resultMatch.scoreA ?? (resultMatch.status === "upcoming" ? 0 : 2),
+      scoreB: resultMatch.scoreB ?? (resultMatch.status === "upcoming" ? 0 : 1),
     });
     setResultError("");
   }, [resultMatch]);
@@ -121,11 +121,11 @@ export default function AdminPanel({
 
   const clampScore = (v) => Math.max(0, Math.min(3, v));
 
-  const handleSubmitResult = async (e) => {
+  const handleSubmitResult = async (e, status = "completed") => {
     e.preventDefault();
     setResultError("");
     setSavingResult(true);
-    const { error } = await submitMatchResult({
+    const { error, status: savedStatus } = await submitMatchResult({
       ...result,
       num: Number(result.num),
       round: Number(result.round),
@@ -133,9 +133,16 @@ export default function AdminPanel({
       teamB: Number(result.teamB),
       scoreA: Number(result.scoreA),
       scoreB: Number(result.scoreB),
+      status,
     });
     setSavingResult(false);
     if (error) return setResultError(error);
+
+    if (savedStatus === "live") {
+      showToast(`Match ${result.num} is now live · score ${result.scoreA}–${result.scoreB}`, "success");
+      onDone?.();
+      return;
+    }
 
     const nextNum = Math.max(nextMatchNumber(matches), Number(result.num) + 1);
     const nextRound = Math.max(nextRoundNumber(matches), Number(result.round) + 1);
@@ -317,6 +324,15 @@ export default function AdminPanel({
           </div>
         )}
 
+        <button
+          type="button"
+          disabled={savingResult || !result.id}
+          onClick={(e) => handleSubmitResult(e, "live")}
+          title={!result.id ? "Schedule this match before publishing a live score" : undefined}
+          className="mb-2 w-full rounded-sm border border-ember-500/50 py-3 text-xs font-bold uppercase tracking-wider text-ember-400 transition hover:bg-ember-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {savingResult ? "Saving..." : "Save live score"}
+        </button>
         <button
           type="submit"
           disabled={savingResult}

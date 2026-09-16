@@ -84,7 +84,7 @@ export default function Standings({
   const visibleResults = showAllResults ? latest : latest.slice(0, 3);
   const tournamentStartDate = getTournamentStartDate(matches);
   const upcoming = matches
-    .filter((m) => m.status === "upcoming")
+    .filter((m) => m.status === "upcoming" || m.status === "live")
     .slice()
     .sort((a, b) => {
       const aTime = parseMatchDate(a.date, a.time)?.getTime() ?? Number.MAX_SAFE_INTEGER;
@@ -433,9 +433,11 @@ function UpcomingCard({
   onDeleteMatch,
 }) {
   const [deleting, setDeleting] = useState(false);
+  const [countdownLabel, setCountdownLabel] = useState(() => getCountdownLabel(m.date, m.time));
   const ta = getTeam(m.teamA);
   const tb = getTeam(m.teamB);
   if (!ta || !tb) return null;
+  const showLiveScore = m.status === "live" && countdownLabel === "LIVE";
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete Match ${m.num}? This cannot be undone.`)) return;
@@ -457,9 +459,11 @@ function UpcomingCard({
           <TeamLogo team={ta} size={26} fontSize={8} />
           <span className="text-xs font-bold">{ta.abbr}</span>
         </div>
-        <span className="rounded-sm bg-ink-800 px-2 py-1 text-[9px] font-bold text-ink-500">
-          VS
-        </span>
+        {showLiveScore ? (
+          <span className="font-display text-lg font-black text-ember-500">{m.scoreA} : {m.scoreB}</span>
+        ) : (
+          <span className="rounded-sm bg-ink-800 px-2 py-1 text-[9px] font-bold text-ink-500">VS</span>
+        )}
         <div className="flex flex-row-reverse items-center gap-2">
           <TeamLogo team={tb} size={26} fontSize={8} />
           <span className="text-xs font-bold">{tb.abbr}</span>
@@ -468,9 +472,9 @@ function UpcomingCard({
       <div className="mt-2 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wider text-ember-500">
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-ember-500 shadow-[0_0_10px_rgba(255,90,31,0.7)]" />
-          <span>Upcoming · BO3</span>
+          <span>{showLiveScore ? "Live · BO3" : "Upcoming · BO3"}</span>
         </span>
-        <LiveCountdown date={m.date} time={m.time} />
+        <LiveCountdown date={m.date} time={m.time} onLabelChange={setCountdownLabel} />
       </div>
       {isAdmin && (
         <div className="mt-3 grid grid-cols-3 gap-1.5">
@@ -525,16 +529,20 @@ function MobileCell({ children, className = "" }) {
   );
 }
 
-function LiveCountdown({ date, time }) {
+function LiveCountdown({ date, time, onLabelChange }) {
   const [label, setLabel] = useState(() => getCountdownLabel(date, time));
 
   useEffect(() => {
-    const update = () => setLabel(getCountdownLabel(date, time));
+    const update = () => {
+      const nextLabel = getCountdownLabel(date, time);
+      setLabel(nextLabel);
+      onLabelChange?.(nextLabel);
+    };
     update();
 
     const id = window.setInterval(update, 1000);
     return () => window.clearInterval(id);
-  }, [date, time]);
+  }, [date, time, onLabelChange]);
 
   return (
     <span className="inline-flex items-center rounded-full border border-ember-500/30 bg-ember-500/10 px-2 py-1 text-[10px] font-black tracking-[0.14em] text-ember-500">

@@ -6,6 +6,7 @@ import { formatMatchDate } from "../lib/schedule";
 const FILTERS = [
   { id: "all", label: "All" },
   { id: "upcoming", label: "Upcoming" },
+  { id: "live", label: "Live" },
   { id: "completed", label: "Completed" },
 ];
 
@@ -97,6 +98,7 @@ export default function Schedule({
                 const tb = getTeam(m.teamB);
                 if (!ta || !tb) return null;
                 const done = m.status === "completed";
+                const live = m.status === "live";
                 const removeMatch = async () => {
                   if (!window.confirm(`Delete Match ${m.num}? This cannot be undone.`)) return;
                   await onDeleteMatch?.(m);
@@ -121,28 +123,28 @@ export default function Schedule({
                     <div
                       className={`text-center text-xs font-bold ${done ? "text-white" : "text-ink-700"}`}
                     >
-                      {done ? `${m.scoreA}–${m.scoreB}` : "—"}
+                      {done || live ? `${m.scoreA}–${m.scoreB}` : "—"}
                     </div>
                     <div
                       className={`text-right text-[9px] font-bold uppercase tracking-wider ${
                         done ? "text-ink-500" : "text-ember-500"
                       }`}
                     >
-                      {done ? "Final" : "Upcoming"}
+                      {done ? "Final" : live ? "Live" : "Upcoming"}
                     </div>
                     {isAdmin && (
                       <div className="col-span-full flex flex-wrap justify-end gap-1.5 border-t border-ink-800 pt-2 sm:col-start-2">
                         <button
                           type="button"
                           onClick={() => onEnterResult?.(m)}
-                          aria-label={done ? "Edit result" : "Input result"}
-                          title={done ? "Edit result" : "Input result"}
+                          aria-label={done ? "Edit result" : live ? "Update live score" : "Input result"}
+                          title={done ? "Edit result" : live ? "Update live score" : "Input result"}
                           className="flex h-7 w-7 items-center justify-center rounded-sm border border-ember-500/35 text-ember-400 hover:bg-ember-500/10 sm:h-auto sm:w-auto sm:px-2 sm:py-1 sm:text-[8px] sm:font-bold sm:uppercase sm:tracking-wider"
                         >
                           <ClipboardPenLine size={13} className="sm:hidden" />
-                          <span className="hidden sm:inline">{done ? "Edit result" : "Input result"}</span>
+                          <span className="hidden sm:inline">{done ? "Edit result" : live ? "Update live" : "Input result"}</span>
                         </button>
-                        {!done && (
+                        {!done && !live && (
                           <button
                             type="button"
                             onClick={() => onEditMatch?.(m)}

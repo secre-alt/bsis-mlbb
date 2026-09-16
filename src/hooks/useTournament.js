@@ -290,7 +290,7 @@ export function useTournament() {
   }, []);
 
   const submitMatchResult = useCallback(
-    async ({ id, updatedAt, completedAt, num, round, date, time, teamA, teamB, scoreA, scoreB }) => {
+    async ({ id, updatedAt, completedAt, num, round, date, time, teamA, teamB, scoreA, scoreB, status = "completed" }) => {
       const offline = offlineWriteError();
       if (offline) return offline;
       if (playoffMatches.some((match) => match.slot.startsWith("semifinal"))) {
@@ -303,16 +303,30 @@ export function useTournament() {
         return { error: "Choose two existing teams." };
       }
       if (teamA === teamB) return { error: "Teams cannot be the same." };
-      if (scoreA === scoreB) return { error: "Score cannot be tied." };
-      const validBo3Score =
-        (scoreA === 2 && (scoreB === 0 || scoreB === 1)) ||
-        (scoreB === 2 && (scoreA === 0 || scoreA === 1));
-      if (!validBo3Score)
+      const validBo3Score = isValidBo3(scoreA, scoreB);
+      const validLiveScore =
+        Number.isInteger(scoreA) && Number.isInteger(scoreB) &&
+        scoreA >= 0 && scoreA <= 1 && scoreB >= 0 && scoreB <= 1;
+      if (status !== "live" && status !== "completed") {
+        return { error: "Match status must be live or completed." };
+      }
+      // Saving a live score becomes final as soon as either side takes its
+      // second game. This keeps the public match card live only in-progress.
+      const resolvedStatus = status === "live" && (scoreA === 2 || scoreB === 2)
+        ? "completed"
+        : status;
+      if (resolvedStatus === "completed" && !validBo3Score)
         return {
           error: "Match result must be a valid best-of-3 score (2-0 or 2-1).",
         };
+      if (resolvedStatus === "live" && !validLiveScore) {
+        return { error: "A live best-of-3 score must be between 0-0 and 1-1." };
+      }
       const existing = id ? matches.find((m) => m.id === id) : null;
       if (id && !existing) return { error: "That match no longer exists. Refresh and try again." };
+      if (status === "live" && !existing) {
+        return { error: "Schedule the match before publishing a live score." };
+      }
       if (!id && matches.length >= REGULAR_SEASON_MATCH_COUNT) {
         return { error: "The 15-match regular season is already full. Record playoff results from the Playoffs tab." };
       }
@@ -331,8 +345,8 @@ export function useTournament() {
         score_b: scoreB,
         match_date: date,
         match_time: time,
-        status: "completed",
-        completed_at: completedAt || new Date().toISOString(),
+        status: resolvedStatus,
+        completed_at: resolvedStatus === "completed" ? completedAt || new Date().toISOString() : null,
       };
       let error;
       if (existing) {
@@ -346,7 +360,7 @@ export function useTournament() {
       } else {
         ({ error } = await supabase.from("matches").insert(payload));
       }
-      return { error: error?.message };
+      return { error: error?.message, status: error ? null : resolvedStatus };
     },
     [matches, playoffMatches, teams],
   );

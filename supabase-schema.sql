@@ -26,13 +26,14 @@ create table if not exists matches (
   score_b     int,
   match_date  date,
   match_time  text,
-  status      text not null default 'upcoming' check (status in ('upcoming', 'completed')),
+  status      text not null default 'upcoming' check (status in ('upcoming', 'live', 'completed')),
   created_at  timestamptz not null default now(),
   completed_at timestamptz,
   updated_at  timestamptz not null default now(),
   constraint different_teams check (team_a <> team_b),
   constraint valid_scores check (
     (status = 'upcoming' and score_a is null and score_b is null)
+    or (status = 'live' and score_a in (0, 1) and score_b in (0, 1))
     or
     (
       status = 'completed'
