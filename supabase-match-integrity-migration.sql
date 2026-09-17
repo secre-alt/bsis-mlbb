@@ -62,10 +62,10 @@ create table if not exists public.playoff_matches (
   score_a int,
   score_b int,
   game_results jsonb not null default '[]'::jsonb,
-  status text not null default 'upcoming' check (status in ('upcoming', 'completed')),
+  status text not null default 'upcoming' check (status in ('upcoming', 'live', 'completed')),
   updated_at timestamptz not null default now(),
   check (team_a is null or team_b is null or team_a <> team_b),
-  check ((status = 'upcoming' and score_a is null and score_b is null) or (status = 'completed' and ((score_a = 2 and score_b in (0, 1)) or (score_b = 2 and score_a in (0, 1)))))
+  check ((status = 'upcoming' and score_a is null and score_b is null) or (status = 'live' and score_a between 0 and 2 and score_b between 0 and 2 and score_a + score_b between 1 and 4) or (status = 'completed' and ((score_a = 3 and score_b in (0, 1, 2)) or (score_b = 3 and score_a in (0, 1, 2)))))
 );
 
 alter table public.playoff_matches enable row level security;
@@ -86,7 +86,7 @@ $$;
 drop trigger if exists set_playoff_match_updated_at on public.playoff_matches;
 create trigger set_playoff_match_updated_at before update on public.playoff_matches for each row execute function public.set_playoff_match_updated_at();
 
--- Enforce bracket progression and BO3 game records even for direct API calls.
+-- Enforce bracket progression and BO5 game records even for direct API calls.
 create or replace function public.enforce_playoff_match_integrity()
 returns trigger
 language plpgsql
@@ -127,22 +127,22 @@ begin
       raise exception 'game_results must be a JSON array';
     end if;
     game_count := jsonb_array_length(new.game_results);
-    if game_count < 2 or game_count > 3 then
-      raise exception 'A BO3 requires two or three recorded games';
+    if game_count < 3 or game_count > 5 then
+      raise exception 'A BO5 requires three to five recorded games';
     end if;
     for game in select value from jsonb_array_elements(new.game_results) loop
       if game = '"A"'::jsonb then wins_a := wins_a + 1;
       elsif game = '"B"'::jsonb then wins_b := wins_b + 1;
       else raise exception 'Each recorded game winner must be A or B';
       end if;
-      if wins_a = 2 or wins_b = 2 then
+      if wins_a = 3 or wins_b = 3 then
         if wins_a + wins_b < game_count then
-          raise exception 'No games may be recorded after a team reaches two wins';
+          raise exception 'No games may be recorded after a team reaches three wins';
         end if;
       end if;
     end loop;
     if wins_a <> new.score_a or wins_b <> new.score_b then
-      raise exception 'Game winners must match the submitted BO3 score';
+      raise exception 'Game winners must match the submitted BO5 score';
     end if;
   end if;
   return new;

@@ -64,8 +64,8 @@ create table if not exists playoff_matches (
   check (team_a is null or team_b is null or team_a <> team_b),
   check (
     (status = 'upcoming' and score_a is null and score_b is null and game_results = '[]'::jsonb)
-    or (status = 'live' and score_a in (0, 1) and score_b in (0, 1) and score_a + score_b between 1 and 2)
-    or (status = 'completed' and ((score_a = 2 and score_b in (0, 1)) or (score_b = 2 and score_a in (0, 1))))
+    or (status = 'live' and score_a between 0 and 2 and score_b between 0 and 2 and score_a + score_b between 1 and 4)
+    or (status = 'completed' and ((score_a = 3 and score_b in (0, 1, 2)) or (score_b = 3 and score_a in (0, 1, 2))))
   )
 );
 

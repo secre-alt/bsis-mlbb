@@ -1,5 +1,5 @@
 -- Run after supabase-match-integrity-migration.sql to allow organizers to
--- publish each BO3 game as it finishes without advancing the bracket early.
+-- publish each BO5 game as it finishes without advancing the bracket early.
 
 do $$
 declare
@@ -66,8 +66,8 @@ create trigger audit_playoff_match_change
 alter table public.playoff_matches
   add constraint playoff_matches_score_status_check check (
     (status = 'upcoming' and score_a is null and score_b is null and game_results = '[]'::jsonb)
-    or (status = 'live' and score_a in (0, 1) and score_b in (0, 1) and score_a + score_b between 1 and 2)
-    or (status = 'completed' and ((score_a = 2 and score_b in (0, 1)) or (score_b = 2 and score_a in (0, 1))))
+    or (status = 'live' and score_a between 0 and 2 and score_b between 0 and 2 and score_a + score_b between 1 and 4)
+    or (status = 'completed' and ((score_a = 3 and score_b in (0, 1, 2)) or (score_b = 3 and score_a in (0, 1, 2))))
   );
 
 alter table public.playoff_matches
@@ -164,25 +164,25 @@ begin
   end if;
 
   game_count := jsonb_array_length(new.game_results);
-  if game_count < 1 or game_count > 3 then
-    raise exception 'A BO3 must record between one and three games';
+  if game_count < 1 or game_count > 5 then
+    raise exception 'A BO5 must record between one and five games';
   end if;
   for game in select value from jsonb_array_elements(new.game_results) loop
     if game = '"A"'::jsonb then wins_a := wins_a + 1;
     elsif game = '"B"'::jsonb then wins_b := wins_b + 1;
     else raise exception 'Each recorded game winner must be A or B';
     end if;
-    if wins_a = 2 or wins_b = 2 then
+    if wins_a = 3 or wins_b = 3 then
       if wins_a + wins_b < game_count then
-        raise exception 'No games may be recorded after a team reaches two wins';
+        raise exception 'No games may be recorded after a team reaches three wins';
       end if;
     end if;
   end loop;
   if wins_a <> new.score_a or wins_b <> new.score_b then
-    raise exception 'Game winners must match the submitted BO3 score';
+    raise exception 'Game winners must match the submitted BO5 score';
   end if;
-  if new.status = 'live' and (wins_a >= 2 or wins_b >= 2) then
-    raise exception 'A team reaching two wins must complete the series';
+  if new.status = 'live' and (wins_a >= 3 or wins_b >= 3) then
+    raise exception 'A team reaching three wins must complete the series';
   end if;
   return new;
 end;

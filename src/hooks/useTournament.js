@@ -465,17 +465,17 @@ export function useTournament() {
     if (slot === "grand_final" && !["semifinal_1", "semifinal_2"].every((semiSlot) => playoffMatches.some((item) => item.slot === semiSlot && item.status === "completed"))) {
       return { error: "Complete both semifinals first." };
     }
-    const games = Array.from({ length: 3 }, (_, index) => gameResults[index] ?? null);
+    const games = Array.from({ length: 5 }, (_, index) => gameResults[index] ?? null);
     if (games.some((winner) => winner && winner !== "A" && winner !== "B")) return { error: "Each game must be won by Team A or Team B." };
     const scoreA = games.filter((winner) => winner === "A").length;
     const scoreB = games.filter((winner) => winner === "B").length;
-    const decisiveGame = games.findIndex((_, index) => games.slice(0, index + 1).filter((winner) => winner === "A").length === 2 || games.slice(0, index + 1).filter((winner) => winner === "B").length === 2);
+    const decisiveGame = games.findIndex((_, index) => games.slice(0, index + 1).filter((winner) => winner === "A").length === 3 || games.slice(0, index + 1).filter((winner) => winner === "B").length === 3);
     if (decisiveGame >= 0 && games.slice(decisiveGame + 1).some(Boolean)) {
-      return { error: "Do not record games after a team reaches two wins." };
+      return { error: "Do not record games after a team reaches three wins." };
     }
-    const completed = isValidBo3(scoreA, scoreB);
+    const completed = (scoreA === 3 && scoreB >= 0 && scoreB <= 2) || (scoreB === 3 && scoreA >= 0 && scoreA <= 2);
     const hasStarted = games.some(Boolean);
-    if (!completed && hasStarted && (scoreA > 1 || scoreB > 1)) return { error: "A live BO3 score cannot exceed 1-1." };
+    if (!completed && hasStarted && (scoreA > 2 || scoreB > 2)) return { error: "A live BO5 score cannot exceed 2-2." };
     const payload = completed
       ? { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: "completed" }
       : { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: hasStarted ? "live" : "upcoming" };
