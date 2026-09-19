@@ -40,6 +40,10 @@ function AppShell() {
   const onlineVisitors = useVisitorPresence();
   const showToast = useToast();
   const data = useTournament();
+  const playoffSeries = data.playoffMatches.filter((match) => match.slot === "semifinal_1" || match.slot === "semifinal_2" || match.slot === "grand_final");
+  const playoffsPublished = playoffSeries.some((match) => match.slot === "semifinal_1");
+  const livePlayoff = playoffSeries.find((match) => match.status === "live");
+  const tournamentComplete = playoffSeries.some((match) => match.slot === "grand_final" && match.status === "completed");
 
   // Publish the seeded bracket as soon as an organizer completes the 15th
   // regular-season result; the unique playoff slot makes this safe in tabs.
@@ -133,6 +137,7 @@ function AppShell() {
           isAdmin={false}
           onLoginClick={() => {}}
           theme={theme}
+          playoffsLive={Boolean(livePlayoff)}
           onToggleTheme={() =>
             setTheme((current) => (current === "dark" ? "light" : "dark"))
           }
@@ -196,6 +201,7 @@ function AppShell() {
           isAdmin={false}
           onLoginClick={() => {}}
           theme={theme}
+          playoffsLive={Boolean(livePlayoff)}
           onToggleTheme={() =>
             setTheme((current) => (current === "dark" ? "light" : "dark"))
           }
@@ -264,6 +270,7 @@ function AppShell() {
         onLoginClick={() => setShowLogin(true)}
         onSignOut={handleSignOut}
         theme={theme}
+        playoffsLive={Boolean(livePlayoff)}
         onToggleTheme={() =>
           setTheme((current) => (current === "dark" ? "light" : "dark"))
         }
@@ -286,6 +293,14 @@ function AppShell() {
         )}
         <Suspense fallback={<PageLoading />}>{content}</Suspense>
       </div>
+
+      {playoffsPublished && !tournamentComplete && page !== "playoffs" && (
+        <MobilePlayoffShortcut
+          isAdmin={isAdmin}
+          isLive={Boolean(livePlayoff)}
+          onOpen={() => navigate("playoffs")}
+        />
+      )}
 
       {showLogin && (
         <Suspense fallback={null}>
@@ -336,6 +351,24 @@ function AppShell() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function MobilePlayoffShortcut({ isAdmin, isLive, onOpen }) {
+  const label = isAdmin && isLive ? "Record playoff game" : "View playoffs";
+  const detail = isLive ? "LIVE" : "PLAYOFFS";
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="fixed bottom-4 left-4 right-4 z-30 flex items-center justify-between border border-ember-500 bg-ember-500 px-4 py-3 text-left text-ink-950 shadow-[0_10px_28px_rgba(255,90,31,.38)] transition active:scale-[.98] md:hidden"
+    >
+      <span className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[.12em]">
+        <span className={`h-2 w-2 rounded-full ${isLive ? "animate-pulse bg-blood-700" : "bg-ink-950"}`} />
+        {label}
+      </span>
+      <span className="text-[9px] font-black uppercase tracking-[.16em]">{detail} →</span>
+    </button>
   );
 }
 

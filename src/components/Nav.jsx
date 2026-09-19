@@ -29,6 +29,7 @@ export default function Nav({
   onSignOut,
   theme,
   onToggleTheme,
+  playoffsLive = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
@@ -75,6 +76,7 @@ export default function Nav({
                 tab={t}
                 active={page === t.id}
                 onClick={handleNavigate}
+                isLive={t.id === "playoffs" && playoffsLive}
               />
             ))}
           </div>
@@ -164,6 +166,7 @@ export default function Nav({
                   tab={t}
                   active={page === t.id}
                   onClick={handleNavigate}
+                  isLive={t.id === "playoffs" && playoffsLive}
                   fullWidth
                 />
               ))}
@@ -291,7 +294,7 @@ function NavAction({ isAdmin, onLoginClick, onSignOut, mobile = false }) {
   );
 }
 
-function TabButton({ tab, active, onClick, admin, fullWidth = false }) {
+function TabButton({ tab, active, onClick, admin, fullWidth = false, isLive = false }) {
   return (
     <button
       onClick={() => onClick(tab.id)}
@@ -307,7 +310,7 @@ function TabButton({ tab, active, onClick, admin, fullWidth = false }) {
             : "text-[var(--text-muted)] hover:bg-[var(--panel-soft)] hover:text-[var(--text)]"
       }`}
     >
-      {tab.label}
+      <span className="inline-flex items-center gap-1.5">{tab.label}{isLive && <span className="h-1.5 w-1.5 rounded-full bg-blood-500 animate-pulse" aria-label="Live playoff series" />}</span>
     </button>
   );
 }
