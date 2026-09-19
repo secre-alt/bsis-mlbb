@@ -87,10 +87,17 @@ begin
     end if;
     if old.status = 'live' then
       if new.status not in ('live', 'completed') then raise exception 'A live playoff series cannot return to upcoming'; end if;
-      if jsonb_array_length(new.game_results) <> previous_game_count + 1 then raise exception 'Record exactly one new game result at a time'; end if;
-      for game_index in 0..previous_game_count - 1 loop
-        if new.game_results -> game_index <> old.game_results -> game_index then raise exception 'Recorded game winners cannot be changed'; end if;
-      end loop;
+      if jsonb_array_length(new.game_results) = previous_game_count + 1 then
+        for game_index in 0..previous_game_count - 1 loop
+          if new.game_results -> game_index <> old.game_results -> game_index then raise exception 'Recorded game winners cannot be changed'; end if;
+        end loop;
+      elsif jsonb_array_length(new.game_results) = previous_game_count - 1 then
+        for game_index in 0..jsonb_array_length(new.game_results) - 1 loop
+          if new.game_results -> game_index <> old.game_results -> game_index then raise exception 'Only the most recent game may be undone'; end if;
+        end loop;
+      else
+        raise exception 'Record or undo exactly one game at a time';
+      end if;
     end if;
   end if;
   game_count := jsonb_array_length(new.game_results);
