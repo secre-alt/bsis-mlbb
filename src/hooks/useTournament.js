@@ -478,7 +478,9 @@ export function useTournament() {
     if (!completed && hasStarted && (scoreA > 2 || scoreB > 2)) return { error: "A live BO5 score cannot exceed 2-2." };
     const payload = completed
       ? { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: "completed" }
-      : { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: hasStarted ? "live" : "upcoming" };
+      : hasStarted
+        ? { score_a: scoreA, score_b: scoreB, game_results: games.filter(Boolean), status: "live" }
+        : { score_a: null, score_b: null, game_results: [], status: "upcoming" };
     let request = supabase.from("playoff_matches").update(payload).eq("slot", slot);
     if (updatedAt) request = request.eq("updated_at", updatedAt);
     const { data, error } = await request.select("updated_at");
