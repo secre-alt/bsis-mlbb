@@ -72,7 +72,10 @@ begin
     end if;
     expected_a := case when semi_one.score_a > semi_one.score_b then semi_one.team_a else semi_one.team_b end;
     expected_b := case when semi_two.score_a > semi_two.score_b then semi_two.team_a else semi_two.team_b end;
-    if new.team_a <> expected_a or new.team_b <> expected_b then
+    if not (
+      (new.team_a = expected_a and new.team_b = expected_b)
+      or (new.team_a = expected_b and new.team_b = expected_a)
+    ) then
       raise exception 'Grand Final teams must be the two semifinal winners';
     end if;
   end if;

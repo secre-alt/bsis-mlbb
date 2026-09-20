@@ -29,6 +29,7 @@ function SeedList({ title, entries, getTeam, eliminated }) { return <section cla
 function BracketBoard({ state, getTeam, seedMap, isAdmin, onSubmit }) {
   const [selectedSlot, setSelectedSlot] = useState("semifinal_1");
   const selectedMatch = state.slots[selectedSlot];
+  const firstCompletedWinner = state.semifinalWinners.find(Boolean);
   const chooseMatch = (match) => { if (isAdmin && match) setSelectedSlot(match.slot); };
   return <>
     <section className="relative mt-2 h-[280px] overflow-hidden border border-[var(--line)] bg-[var(--panel)] sm:h-[330px] md:h-[390px]" style={{ minHeight: 280 }}>
@@ -37,7 +38,7 @@ function BracketBoard({ state, getTeam, seedMap, isAdmin, onSubmit }) {
       <div className="absolute inset-0 z-10">
         <div className="absolute" style={{ left: "4%", top: "31%", width: "34%", transform: "translateY(-50%)" }}><MatchBox match={state.slots.semifinal_1} getTeam={getTeam} seedMap={seedMap} onChoose={chooseMatch} selected={selectedSlot === "semifinal_1"} interactive={isAdmin} /></div>
         <div className="absolute" style={{ left: "4%", top: "69%", width: "34%", transform: "translateY(-50%)" }}><MatchBox match={state.slots.semifinal_2} getTeam={getTeam} seedMap={seedMap} onChoose={chooseMatch} selected={selectedSlot === "semifinal_2"} interactive={isAdmin} /></div>
-        <div className="absolute" style={{ left: "60%", top: "50%", width: "34%", transform: "translateY(-50%)" }}><MatchBox match={state.slots.grand_final} getTeam={getTeam} seedMap={seedMap} onChoose={chooseMatch} selected={selectedSlot === "grand_final"} interactive={isAdmin} placeholder="Winners of both semifinals" /></div>
+        <div className="absolute" style={{ left: "60%", top: "50%", width: "34%", transform: "translateY(-50%)" }}><MatchBox match={state.slots.grand_final} getTeam={getTeam} seedMap={seedMap} onChoose={chooseMatch} selected={selectedSlot === "grand_final"} interactive={isAdmin} firstFinalist={firstCompletedWinner} /></div>
       </div>
     </section>
     {isAdmin && selectedMatch && !selectedMatch.status.includes("completed") && <ResultEditor match={selectedMatch} getTeam={getTeam} onSubmit={onSubmit} />}
@@ -45,8 +46,11 @@ function BracketBoard({ state, getTeam, seedMap, isAdmin, onSubmit }) {
 }
 function RoundHeading({ label, className = "" }) { return <h2 className={`text-center text-[10px] font-black uppercase tracking-[0.18em] text-ember-500 ${className}`}>{label}</h2>; }
 
-function MatchBox({ match, getTeam, seedMap, onChoose, selected, interactive, placeholder }) {
-  if (!match) return <div className="w-full"><div className="mb-1 flex h-4 items-center justify-between px-1 text-[8px] font-black uppercase tracking-[.14em] text-[var(--text-muted)]"><span>Grand Final</span><span>BO5</span></div><div className="space-y-1"><FixtureRow label="Winner of Match 1" score="-" /><FixtureRow label="Winner of Match 2" score="-" /></div></div>;
+function MatchBox({ match, getTeam, seedMap, onChoose, selected, interactive, firstFinalist }) {
+  if (!match) {
+    const firstTeam = firstFinalist ? getTeam(firstFinalist) : null;
+    return <div className="w-full"><div className="mb-1 flex h-4 items-center justify-between px-1 text-[8px] font-black uppercase tracking-[.14em] text-[var(--text-muted)]"><span>Grand Final</span><span>BO5</span></div><div className="space-y-1"><FixtureRow team={firstTeam} label={firstTeam ? undefined : "Winner of first semifinal"} score="-" /><FixtureRow label="Winner of remaining semifinal" score="-" /></div></div>;
+  }
   const complete = match.status === "completed";
   const teamA = getTeam(match.teamA); const teamB = getTeam(match.teamB);
   const content = <><div className="mb-1 flex h-4 items-center justify-between px-1 text-[8px] font-black uppercase tracking-[.14em] text-[var(--text-muted)]"><span>{match.slot === "grand_final" ? "Grand Final" : "Semifinal"}</span><span>{complete ? "Final" : match.status === "live" ? "Live" : "BO5"}</span></div><div className="space-y-1"><FixtureRow team={teamA} score={match.scoreA} /><FixtureRow team={teamB} score={match.scoreB} /></div></>;

@@ -494,7 +494,11 @@ export function useTournament() {
     if (playoffMatches.some((match) => match.slot === "grand_final")) return { error: null };
     const semis = ["semifinal_1", "semifinal_2"].map((slot) => playoffMatches.find((match) => match.slot === slot));
     if (semis.some((match) => match?.status !== "completed")) return { error: "Complete both semifinals first." };
-    const [teamA, teamB] = semis.map((match) => match.scoreA > match.scoreB ? match.teamA : match.teamB);
+    // The first semifinal completed occupies the first Grand Final slot,
+    // regardless of whether it is semifinal_1 or semifinal_2.
+    const [teamA, teamB] = [...semis]
+      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime())
+      .map((match) => match.scoreA > match.scoreB ? match.teamA : match.teamB);
     const { error } = await supabase.from("playoff_matches").upsert({ slot: "grand_final", round: 2, team_a: teamA, team_b: teamB, status: "upcoming" }, { onConflict: "slot", ignoreDuplicates: true });
     return { error: error?.message };
   }, [playoffMatches]);
